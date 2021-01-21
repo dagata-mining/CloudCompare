@@ -8,6 +8,7 @@ include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/db_tree )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/ui_templates )
 include_directories( ${CMAKE_CURRENT_BINARY_DIR} )
 
+
 file( GLOB header_list *.h  )
 file( GLOB source_list *.cpp )
 
@@ -42,6 +43,8 @@ DeployQt(
 	DEPLOY_PATH
 		${PROJECT_NAME}
 )
+
+
 
 target_link_libraries( ${PROJECT_NAME}
     CCAppCommon
