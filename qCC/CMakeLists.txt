@@ -25,6 +25,7 @@ add_subdirectory( extern/QCustomPlot EXCLUDE_FROM_ALL )
 qt5_wrap_ui( generated_ui_list ${ui_list} )
 qt5_add_resources( generated_qrc_list ${qrc_list} )
 
+
 if( MSVC )
 	# App icon with MSVC
 	set( rc_list images/icon/cc_icon.rc )
@@ -43,8 +44,6 @@ DeployQt(
 	DEPLOY_PATH
 		${PROJECT_NAME}
 )
-
-
 
 target_link_libraries( ${PROJECT_NAME}
     CCAppCommon

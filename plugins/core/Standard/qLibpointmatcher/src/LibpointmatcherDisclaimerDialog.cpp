@@ -1,6 +1,6 @@
 //##########################################################################
 //#                                                                        #
-//#                              CLOUDCOMPARE                              #
+//#                       CLOUDCOMPARE PLUGIN: Libpointmatcher                       #
 //#                                                                        #
 //#  This program is free software; you can redistribute it and/or modify  #
 //#  it under the terms of the GNU General Public License as published by  #
@@ -11,26 +11,41 @@
 //#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the          #
 //#  GNU General Public License for more details.                          #
 //#                                                                        #
-//#                    COPYRIGHT: CloudCompare project                     #
+//#            COPYRIGHT: UNIVERSITE EUROPEENNE DE BRETAGNE                #
 //#                                                                        #
 //##########################################################################
 
-#ifndef CC_LIBPOINTMATCHER_CONVERT_HEADER
-#define CC_LIBPOINTMATCHER_CONVERT_HEADER
+#include "LibpointmatcherDisclaimerDialog.h"
+#include "ui_disclaimerDlg.h"
 
-#include "pointmatcher/PointMatcher.h"
-#include "nabo/nabo.h"
-#include "ccGenericPointCloud.h"
+//qCC_plugins
+#include <ccMainAppInterface.h>
 
-typedef PointMatcher<float> PM;
-typedef PM::DataPoints DP;
+//Qt
+#include <QMainWindow>
 
-class ccGenericPointCloud;
-class CCCoreLib;
-class ccPointCloud;
+bool DisclaimerDialog::s_disclaimerAccepted = false;
 
-DP ccToPointMatcher(ccGenericPointCloud*);
 
-	
+DisclaimerDialog::DisclaimerDialog(QWidget *parent)
+    : QDialog(parent)
+    , m_ui( new Ui::DisclaimerDialog )
+{
+    m_ui->setupUi( this );
+}
 
-#endif
+DisclaimerDialog::~DisclaimerDialog()
+{
+    delete m_ui;
+}
+
+bool DisclaimerDialog::show(ccMainAppInterface *app)
+{
+	if ( !s_disclaimerAccepted )
+	{
+		//if the user "cancels" it, then he refuses the disclaimer
+		s_disclaimerAccepted = DisclaimerDialog(app ? app->getMainWindow() : 0).exec();
+	}
+
+	return s_disclaimerAccepted;
+}

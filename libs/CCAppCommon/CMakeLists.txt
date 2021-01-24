@@ -9,6 +9,7 @@ add_subdirectory( ui )
 
 target_link_libraries( ${PROJECT_NAME}
 	CCPluginAPI
+	
 )
 
 

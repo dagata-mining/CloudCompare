@@ -3,13 +3,12 @@ option( PLUGIN_IO_LIBPOINTMATCHER "Install LIBPOINTMATCHER" ON )
 if( PLUGIN_IO_LIBPOINTMATCHER )
 	project( LIBPOINTMATCHER )
 
-	
-	add_library( ${PROJECT_NAME} STATIC )
+	AddPlugin( NAME ${PROJECT_NAME} TYPE io )
+	#add_library( ${PROJECT_NAME} STATIC )
 
 	add_subdirectory( include )
 	add_subdirectory( src )
-	#add_subdirectory( ui )
-	#add_subdirectory( PointMatcherSubdirectory ) # PCL bridge library
+	add_subdirectory( ui )
 	find_package( libpointmatcher REQUIRED )
 	find_package (Boost COMPONENTS system filesystem REQUIRED)
 	target_include_directories( ${PROJECT_NAME}
@@ -30,7 +29,7 @@ if( PLUGIN_IO_LIBPOINTMATCHER )
 	${libpointmatcher_LIBRARIES}
 	${Boost_LIBRARIES}
 	)
-
+	
 	#set( LIBPOINTMATCHER_ROOT_DIR "" CACHE PATH "LIBPOINTMATCHER ()" )
 	#set( LIBPOINTMATCHER_LIBRARIES "" CACHE FILEPATH "LIBPOINTMATCHER LIB ()" )
 

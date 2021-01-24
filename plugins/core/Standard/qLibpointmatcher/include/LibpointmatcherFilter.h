@@ -1,6 +1,6 @@
 //##########################################################################
 //#                                                                        #
-//#                      CLOUDCOMPARE PLUGIN: qPclIO                       #
+//#                              CLOUDCOMPARE                              #
 //#                                                                        #
 //#  This program is free software; you can redistribute it and/or modify  #
 //#  it under the terms of the GNU General Public License as published by  #
@@ -15,50 +15,26 @@
 //#                                                                        #
 //##########################################################################
 
-#include <LibpointmatcherConvert.h>
+#ifndef CC_LIBPOINTMATCHER_FILTER_HEADER
+#define CC_LIBPOINTMATCHER_FILTER_HEADER
 
-//qCC_db
-#include <ccHObject.h>
+#include "pointmatcher/PointMatcher.h"
+#include "nabo/nabo.h"
+#include "CCCoreLib.h"
+#include "ccGenericPointCloud.h"
+#include "LibpointmatcherConvert.h"
 
-DP ccToPointMatcher(ccGenericPointCloud* cloud)
-{
-	typedef DP::Label Label;
-	typedef DP::Labels Labels;
-	typedef DP::View View;
+typedef PointMatcher<float> PM;
+typedef PM::DataPoints DP;
+class ccGenericPointCloud;
 
-	if (cloud-> size() <=0 )
-		return DP();
-	Labels featLabels;
-	Labels descLabels;
-	std::vector<bool> isFeature;
-	featLabels.push_back(Label("x", 1));
-	isFeature.push_back(true);
-	featLabels.push_back(Label("y", 1));
-	isFeature.push_back(true);
-	featLabels.push_back(Label("z", 1));
-	isFeature.push_back(true);
-	featLabels.push_back(Label("i", 1));
-	isFeature.push_back(true);
-	featLabels.push_back(Label("pad", 1));
-
-	DP cloudDP(featLabels, descLabels, cloud->size());
-	cloudDP.getFeatureViewByName("pad").setConstant(1);
-	// fill cloud
-	View view(cloudDP.getFeatureViewByName("x"));
-	const CCVector3* P3D;
-#if defined(_OPENMP)
-#pragma omp parallel for
-#endif
-	for (int i = 0; i < cloud->size(); ++i)
-	{
-		P3D = cloud->getPoint(i);
-		view(0, i) = P3D-> x ;
-		view(1, i) = P3D-> y;
-		view(2, i) = P3D-> z;
-		view(3, i) = i;
-
-	}
-
-	return cloudDP;
+class LibpointmatcherFilter 
+{	
+	//Parameters for filtering 
+public:
+	static DP filter(DP);
+	static CCCoreLib::ReferenceCloud* filterChain(ccGenericPointCloud*);
 }
+
 ;
+#endif

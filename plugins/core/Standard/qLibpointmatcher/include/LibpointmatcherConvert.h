@@ -15,11 +15,28 @@
 //#                                                                        #
 //##########################################################################
 
-#ifndef CC_LIBPOINTMATCHER_FILTER_HEADER
-#define CC_LIBPOINTMATCHER_FILTER_HEADER
+#ifndef LIBPOINTMATCHER_CONVERT_HEADER
+#define LIBPOINTMATCHER_CONVERT_HEADER
 
-#include "pointmatcher/IO.h"
+#include "pointmatcher/PointMatcher.h"
+#include "LibpointmatcherFilter.h"
 #include "nabo/nabo.h"
+#include "ccGenericPointCloud.h"
+#include "CCCoreLib.h"
+
 typedef PointMatcher<float> PM;
 typedef PM::DataPoints DP;
+
+class ccGenericPointCloud;
+
+
+class LibpointmatcherConvert
+{
+public:
+	// Converts a CloudCompare Entity to a Point Matcher Entity
+	static DP ccToPointMatcher(ccGenericPointCloud* cloud);
+	// Converts a pointMatcher Entity to a Cloudcompare ReferenceCloud 
+	static CCCoreLib::ReferenceCloud* pointmatcherToCC(DP* cloud,ccGenericPointCloud* ref);
+};
+	
 #endif
