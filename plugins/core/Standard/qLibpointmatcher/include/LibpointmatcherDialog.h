@@ -100,6 +100,8 @@ protected:
 
 	//! Updates the normalSourceComboBox
 	void updateNormalComboBox();
+	// change the filter options
+	void acceptFilterOptions();
 
 protected: //methods
 
