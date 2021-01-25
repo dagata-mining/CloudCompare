@@ -20,6 +20,8 @@
 
 //Local
 #include "LibpointmatcherDialog.h"
+//qCC
+#include "ccMainAppInterface.h"
 
 class ccMainAppInterface;
 
@@ -32,13 +34,8 @@ class LibpointmatcherProcess
 {
 public:
 	
-	static bool Compute(const LibpointmatcherDialog& dlg,
-						QString& errorMessage,
-						ccPointCloud*& outputCloud,
-						bool allowDialogs,
-						QWidget* parentWidget = nullptr,
-						ccMainAppInterface* app = nullptr);
-	static bool Subsample(const LibpointmatcherDialog& dlg,
+	static bool Subsample(const LibpointmatcherDialog& dlg, 
+						ccHObject* entity,
 						QString& errorMessage,
 						QWidget* parentWidget/*=nullptr*/,
 						ccMainAppInterface* app/*=nullptr*/);

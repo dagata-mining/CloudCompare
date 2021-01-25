@@ -23,7 +23,6 @@
 #include <GenericProgressCallback.h>
 #include <DgmOctree.h>
 #include <pointmatcher/PointMatcher.h>
-#include <LibpointmatcherFilter.h>
 #include <nabo/nabo.h>
 #include <CCCoreLib.h>
 
@@ -117,7 +116,7 @@ public:
 	// Converts a pointMatcher Entity to a Cloudcompare ReferenceCloud 
 	static CCCoreLib::ReferenceCloud* pointmatcherToCC(DP* cloud, ccPointCloud* ref);
 	// Subsamples from Libpointmatcher
-	static DP filter(DP);
+	static DP filter(DP, std::vector< std::shared_ptr<PM::DataPointsFilter>>);
 
 };
 

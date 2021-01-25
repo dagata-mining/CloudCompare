@@ -24,7 +24,6 @@
 #include "LibpointmatcherTools.h"
 #include "LibpointmatcherDialog.h"
 #include "LibpointmatcherDisclaimerDialog.h"
-#include "LibpointmatcherCommands.h"
 #include "LibpointmatcherProcess.h"
 
 //qCC_db
@@ -42,9 +41,7 @@ void Libpointmatcher::onNewSelection(const ccHObject::Container& selectedEntitie
 {
 	if (m_action)
 	{
-		m_action->setEnabled(	selectedEntities.size() == 2
-							&&	selectedEntities[0]->isA(CC_TYPES::POINT_CLOUD)
-							&&	selectedEntities[1]->isA(CC_TYPES::POINT_CLOUD) );
+		m_action->setEnabled(selectedEntities.size() >= 1 && selectedEntities[0]->isA(CC_TYPES::POINT_CLOUD));
 	}
 
 	m_selectedEntities = selectedEntities;
@@ -74,42 +71,30 @@ void Libpointmatcher::doAction()
 	if (!m_app)
 		return;
 
-	if (m_selectedEntities.size() != 2
-		|| !m_selectedEntities[0]->isA(CC_TYPES::POINT_CLOUD)
-		|| !m_selectedEntities[1]->isA(CC_TYPES::POINT_CLOUD))
+	if (m_selectedEntities.size() < 1 || !m_selectedEntities[0]->isA(CC_TYPES::POINT_CLOUD))
 	{
-		m_app->dispToConsole("Select two point clouds!", ccMainAppInterface::ERR_CONSOLE_MESSAGE);
+		m_app->dispToConsole("Select a pointcloud", ccMainAppInterface::ERR_CONSOLE_MESSAGE);
 		return;
 	}
 
-	ccPointCloud* cloud1 = ccHObjectCaster::ToPointCloud(m_selectedEntities[0]);
-	ccPointCloud* cloud2 = ccHObjectCaster::ToPointCloud(m_selectedEntities[1]);
-
 	//display dialog
-	LibpointmatcherDialog dlg(cloud1, cloud2, m_app);
+	LibpointmatcherDialog dlg(m_app);
 	if (!dlg.exec())
 	{
 		//process cancelled by the user
 		return;
 	}
+	dlg.acceptFilterOptions();
 
 	QString errorMessage;
 	ccPointCloud* outputCloud = nullptr; //only necessary for the command line version in fact
-	if (!LibpointmatcherProcess::Subsample(dlg, errorMessage, m_app->getMainWindow(), m_app))
-	{
-		m_app->dispToConsole(errorMessage, ccMainAppInterface::ERR_CONSOLE_MESSAGE);
+	
+	for (int i = 0; i < m_selectedEntities.size(); i++) {
+		if (!LibpointmatcherProcess::Subsample(dlg,m_selectedEntities[i], errorMessage, m_app->getMainWindow(), m_app))
+		{
+			m_app->dispToConsole(errorMessage, ccMainAppInterface::ERR_CONSOLE_MESSAGE);
+		}
 	}
 
-	//'Compute' may change some parameters of the dialog
-	dlg.saveParamsToPersistentSettings();
 }
 
-void Libpointmatcher::registerCommands(ccCommandLineInterface* cmd)
-{
-	if (!cmd)
-	{
-		assert(false);
-		return;
-	}
-	cmd->registerCommand(ccCommandLineInterface::Command::Shared(new CommandLibpointmatcher));
-}

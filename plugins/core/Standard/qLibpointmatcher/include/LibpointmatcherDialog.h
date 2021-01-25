@@ -28,6 +28,7 @@
 
 class ccMainAppInterface;
 class ccPointCloud;
+class ccHObject;
 
 //! M3C2 plugin's main dialog
 class LibpointmatcherDialog : public QDialog, public Ui::LibpointmatcherDialog
@@ -37,28 +38,17 @@ class LibpointmatcherDialog : public QDialog, public Ui::LibpointmatcherDialog
 public:
 
 	//! Default constructor
-	LibpointmatcherDialog(ccPointCloud* cloud1, ccPointCloud* cloud2, ccMainAppInterface* app);
+	LibpointmatcherDialog(ccMainAppInterface* app);
 
 	//! Returns cloud #1
 	ccPointCloud* getCloud1() const { return m_cloud1; }
 	//! Returns cloud #2
 	ccPointCloud* getCloud2() const { return m_cloud2; }
 
-	//! Get core points cloud (if any)
-	/** Returns either cloud #1 or the cloud specified in the combo box.
-		It can also return a null pointer if the user has requested
-		sub-sampling.
-	**/
-	ccPointCloud* getCorePointsCloud() const;
 
-	//! Sets the core points cloud
-	void setCorePointsCloud(ccPointCloud* cloud) { m_corePointsCloud = cloud; }
 
-	//! Returns the cloud to be used for normals orientation (if any)
-	ccPointCloud* getNormalsOrientationCloud() const;
-
-	//! Returns selected normals computation mode
-	LibpointmatcherNormals::ComputationMode getNormalsComputationMode() const;
+	//! Returns vector of parameters
+	std::vector< std::shared_ptr<PM::DataPointsFilter>> getFilters() const { return m_filters; }
 
 	//! Returns the minimum number of points to compute stats (confidence mainly)
 	unsigned getMinPointsForStats(unsigned defaultValue = 5) const;
@@ -79,55 +69,28 @@ public:
 
 	//! Returns the max number of threads to use
 	int getMaxThreadCount() const;
-
-	//! Loads parameters from persistent settings
-	bool loadParamsFromFile(QString filename);
-	//! Loads parameters from persistent settings
-	void loadParamsFromPersistentSettings();
-	//! Saves parameters to persistent settings
-	void saveParamsToPersistentSettings();
-
-protected:
-
-	void swapClouds();
-	void setCloud1Visibility(bool);
-	void setCloud2Visibility(bool);
-	void saveParamsToFile();
-	void getParamsFromFile();
-	inline void guessParamsSlow() { guessParams(false); }
-	void projDestIndexChanged(int);
-	void onUpdateNormalComboBoxChanged(int);
-
-	//! Updates the normalSourceComboBox
-	void updateNormalComboBox();
 	// change the filter options
 	void acceptFilterOptions();
 
-protected: //methods
 
-	//! Guess parameters from the cloud #1
-	void guessParams(bool fastMode);
+protected:
 
-	//! Sets clouds
-	void setClouds(ccPointCloud* cloud1, ccPointCloud* cloud2);
+	void setCloud1Visibility(bool);
+	void setCloud2Visibility(bool);
+	void projDestIndexChanged(int);
 
-	//! Load parameters from QSettings
-	void loadParamsFrom(const QSettings& settings);
-	//! Saves parameters to QSettings
-	void saveParamsTo(QSettings& settings);
+	
 
-	//! Setups the precision maps tab
-	/** \warning 'setClouds' must have been already called
-	**/
-	void setupPrecisionMapsTab();
 
 protected: //members
 
 	ccMainAppInterface* m_app;
 
+
 	ccPointCloud* m_cloud1;
 	ccPointCloud* m_cloud2;
 	ccPointCloud* m_corePointsCloud;
+	std::vector< std::shared_ptr<PM::DataPointsFilter>> m_filters;
 };
 
-#endif //Q_M3C2_DIALOG_HEADER
+#endif 

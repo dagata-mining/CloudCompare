@@ -32,6 +32,7 @@
 #include <QMessageBox>
 #include <QThread>
 #include <QstackedWidget>
+#include <Qstring>
 
 static bool s_firstTimeInit = true;
 
@@ -52,230 +53,34 @@ static QString GetEntityName(ccHObject* obj)
 	return name;
 }
 
-static ccPointCloud* GetCloudFromCombo(QComboBox* comboBox, ccHObject* dbRoot)
-{
-	assert(comboBox && dbRoot);
-	if (!comboBox || !dbRoot)
-	{
-		assert(false);
-		return nullptr;
-	}
 
-	//return the cloud currently selected in the combox box
-	int index = comboBox->currentIndex();
-	if (index < 0)
-	{
-		assert(false);
-		return nullptr;
-	}
-	assert(comboBox->itemData(index).isValid());
-	unsigned uniqueID = comboBox->itemData(index).toUInt();
-	ccHObject* item = dbRoot->find(uniqueID);
-	if (!item || !item->isA(CC_TYPES::POINT_CLOUD))
-	{
-		assert(false);
-		return nullptr;
-	}
-	return static_cast<ccPointCloud*>(item);
-}
 
-/*** HELPERS (END) ***/
-
-LibpointmatcherDialog::LibpointmatcherDialog(ccPointCloud* cloud1, ccPointCloud* cloud2, ccMainAppInterface* app)
+LibpointmatcherDialog::LibpointmatcherDialog(ccMainAppInterface* app)
 	: QDialog(app ? app->getMainWindow() : nullptr)
 	, Ui::LibpointmatcherDialog()
 	, m_app(app)
-	, m_cloud1(nullptr)
-	, m_cloud2(nullptr)
 	, m_corePointsCloud(nullptr)
 {
 	setupUi(this);
 
-	int maxThreadCount = QThread::idealThreadCount();
-	maxThreadCountSpinBox->setRange(1, maxThreadCount);
-	maxThreadCountSpinBox->setSuffix(QString(" / %1").arg(maxThreadCount));
 
-	connect(showCloud1CheckBox,		&QAbstractButton::toggled,	this, &LibpointmatcherDialog::setCloud1Visibility);
-	connect(showCloud2CheckBox,		&QAbstractButton::toggled,	this, &LibpointmatcherDialog::setCloud2Visibility);
-
-	connect(loadParamsToolButton,	&QAbstractButton::clicked,	this, &LibpointmatcherDialog::getParamsFromFile);
-	connect(saveParamsToolButton,	&QAbstractButton::clicked,	this, &LibpointmatcherDialog::saveParamsToFile);
-	connect(swapCloudsToolButton,	&QAbstractButton::clicked,	this, &LibpointmatcherDialog::swapClouds);
-	connect(guessParamsPushButton,	&QAbstractButton::clicked,	this, &LibpointmatcherDialog::guessParamsSlow);
-
-	connect(projDestComboBox, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this, &LibpointmatcherDialog::projDestIndexChanged);
-
-	connect(cpOtherCloudComboBox, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this, &LibpointmatcherDialog::updateNormalComboBox);
-	connect(normalSourceComboBox, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this, &LibpointmatcherDialog::onUpdateNormalComboBoxChanged);
-	connect(cpUseCloud1RadioButton, &QAbstractButton::toggled, this, &LibpointmatcherDialog::updateNormalComboBox);
-	connect(cpSubsampleRadioButton, &QAbstractButton::toggled, this, &LibpointmatcherDialog::updateNormalComboBox);
-	connect(cpUseOtherCloudRadioButton, &QAbstractButton::toggled, this, &LibpointmatcherDialog::updateNormalComboBox);
-
-	loadParamsFromPersistentSettings();
-
-	setClouds(cloud1, cloud2);
-
-	if (m_app)
-	{
-		//add list of clouds to the combo-boxes
-		ccHObject::Container clouds;
-		if (m_app->dbRootObject())
-		{
-			m_app->dbRootObject()->filterChildren(clouds, true, CC_TYPES::POINT_CLOUD);
-		}
-
-		for (size_t i = 0; i < clouds.size(); ++i)
-		{
-			if (clouds[i]->isA(CC_TYPES::POINT_CLOUD)) //as filterChildren only test 'isKindOf'
-			{
-				cpOtherCloudComboBox->addItem(GetEntityName(clouds[i]), QVariant(clouds[i]->getUniqueID()));
-				normOriCloudComboBox->addItem(GetEntityName(clouds[i]), QVariant(clouds[i]->getUniqueID()));
-			}
-		}
-	}
-	else
-	{
-		//command line mode: we need to update the combo-box
-		updateNormalComboBox();
-	}
 }
 
-bool PopulateSFCombo(QComboBox* combo, const ccPointCloud& cloud, int defaultFieldIndex = -1, QString defaultField = QString())
-{
-	unsigned sfCount = cloud.getNumberOfScalarFields();
-	if (!combo || sfCount == 0)
-	{
-		assert(false);
-		return false;
-	}
 
-	combo->clear();
-	int selectedFieldIndex = -1;
-	bool defaultFieldFound = false;
-	for (unsigned i = 0; i < sfCount; ++i)
-	{
-		QString sfName = cloud.getScalarFieldName(i);
-		combo->addItem(sfName);
-		if (selectedFieldIndex < 0 && !defaultField.isEmpty())
-		{
-			if (sfName.contains(defaultField, Qt::CaseInsensitive))
-			{
-				selectedFieldIndex = static_cast<int>(i);
-				defaultFieldFound = true;
-			}
-		}
-	}
 
-	if (selectedFieldIndex < 0)
-	{
-		selectedFieldIndex = defaultFieldIndex;
-	}
-	combo->setCurrentIndex(selectedFieldIndex);
 
-	return defaultFieldFound;
-}
-
-bool PopulatePMFields(QComboBox* sx, QComboBox* sy, QComboBox* sz, const ccPointCloud& cloud)
-{
-	assert(sx && sy && sz);
-	int sfCount = static_cast<int>(cloud.getNumberOfScalarFields());
-	if (sfCount == 0)
-	{
-		assert(false);
-		return false;
-	}
-
-	bool sxFound = PopulateSFCombo(sx, cloud, std::min<int>(sfCount, 0), "sx");
-	bool syFound = PopulateSFCombo(sy, cloud, std::min<int>(sfCount, 1), "sy");
-	bool szFound = PopulateSFCombo(sz, cloud, std::min<int>(sfCount, 2), "sz");
-
-	return sxFound && syFound && szFound;
-}
-
-void LibpointmatcherDialog::setupPrecisionMapsTab()
-{
-	precisionMapsGroupBox->setEnabled(false);
-
-	if (!m_cloud1 || !m_cloud2)
-	{
-		assert(false);
-		return;
-	}
-
-	if (m_cloud1->hasScalarFields() && m_cloud2->hasScalarFields())
-	{
-		bool wasChecked = precisionMapsGroupBox->isChecked();
-		bool auto1 = PopulatePMFields(c1SxComboBox, c1SyComboBox, c1SzComboBox, *m_cloud1);
-		bool auto2 = PopulatePMFields(c2SxComboBox, c2SyComboBox, c2SzComboBox, *m_cloud2);
-		precisionMapsGroupBox->setChecked(wasChecked && (auto1 && auto2));
-		precisionMapsGroupBox->setEnabled(true);
-	}
-}
-
-void LibpointmatcherDialog::swapClouds()
-{
-	setClouds(m_cloud2, m_cloud1);
-	updateNormalComboBox();
-}
-
-void LibpointmatcherDialog::setClouds(ccPointCloud* cloud1, ccPointCloud* cloud2)
-{
-	if (!cloud1 || !cloud2)
-	{
-		assert(false);
-		return;
-	}
-
-	m_cloud1 = cloud1;
-	m_cloud2 = cloud2;
-
-	//cloud #1
-	cloud1LineEdit->setText(GetEntityName(cloud1));
-	showCloud1CheckBox->blockSignals(true);
-	showCloud1CheckBox->setChecked(cloud1->isVisible());
-	showCloud1CheckBox->blockSignals(false);
-
-	//cloud #2
-	cloud2LineEdit->setText(GetEntityName(cloud2));
-	showCloud2CheckBox->blockSignals(true);
-	showCloud2CheckBox->setChecked(cloud2->isVisible());
-	showCloud2CheckBox->blockSignals(false);
-
-	if (s_firstTimeInit)
-	{
-		//on initialization, try to guess some parameters from the input clouds
-		guessParams(true);
-		s_firstTimeInit = false;
-	}
-
-	setupPrecisionMapsTab();
-}
-
-void LibpointmatcherDialog::onUpdateNormalComboBoxChanged(int)
-{
-	int selectedItem = normalSourceComboBox->currentIndex() >= 0 ? normalSourceComboBox->currentData().toInt() : -1;
-	switch (selectedItem)
-	{
-	case LibpointmatcherNormals::USE_CLOUD1_NORMALS:
-	case LibpointmatcherNormals::USE_CORE_POINTS_NORMALS:
-		normParamsFrame->setEnabled(false);
-		normalScaleDoubleSpinBox->setEnabled(false);
-		break;
-	default:
-		normParamsFrame->setEnabled(true);
-		normalScaleDoubleSpinBox->setEnabled(true);
-		break;
-	}
-}
 
 void LibpointmatcherDialog::acceptFilterOptions() {
 	int indexFilter = Options->currentIndex();
 	bool needNormals = false;
 	bool useExistingNormals = true;
+	
 
 	std::shared_ptr<PM::DataPointsFilter> filterParams;
-
+	
 	switch (indexFilter) {
+	
+
 	case 0:
 	{
 		//MaximumDensityFilter
@@ -313,17 +118,19 @@ void LibpointmatcherDialog::acceptFilterOptions() {
 		break;
 	}
 	case 2:
-	{
+	{	ccLog::Print(QString("Im in"));
 		//MaximumPointCountFilter
-		std::string seedValue = std::to_string(srandSeed->value());
-		std::string maxCountValue = std::to_string(maxPointCount->value());
+		std::string seedValue = std::to_string((int)round(srandSeed->value()));
+		std::string maxCountValue = std::to_string((int)round(maxPointCount->value()));
+		ccLog::Print(QString::fromStdString(maxCountValue));
 		filterParams = PM::get().DataPointsFilterRegistrar.create(
 			"MaxPointCountDataPointsFilter",
 			{
-				{"seed", seedValue},
+				{"seed",seedValue},
 				{"maxCount", maxCountValue},
 			}
 		);
+		
 		break;
 	}
 	case 3:
@@ -369,6 +176,7 @@ void LibpointmatcherDialog::acceptFilterOptions() {
 		break;
 	}
 	case 6:
+	{
 		//VoxelGridFilter
 		std::string vSizeXValue = std::to_string(voxelSizeX->value());
 		std::string vSizeYValue = std::to_string(voxelSizeY->value());
@@ -386,6 +194,7 @@ void LibpointmatcherDialog::acceptFilterOptions() {
 			}
 		);
 		break;
+	}
 	case 7:
 	{
 		//OctreeGridFilter
@@ -478,81 +287,11 @@ void LibpointmatcherDialog::acceptFilterOptions() {
 		break;
 	}
 	}
+	//Push into the fitler params vector
+	m_filters.push_back(filterParams);
 }
 
-void LibpointmatcherDialog::updateNormalComboBox()
-{
-	int previouslySelectedItem = normalSourceComboBox->currentIndex() >= 0 ? normalSourceComboBox->currentData().toInt() : -1;
-	int lastIndex = -1;
-	normalSourceComboBox->clear();
-	normalSourceComboBox->addItem("Compute normals (on core points)", QVariant(LibpointmatcherNormals::DEFAULT_MODE));
-	++lastIndex;
-	//if (previouslySelectedItem == qM3C2Normals::DEFAULT_MODE)
-	{
-		normalSourceComboBox->setCurrentIndex(lastIndex); //default mode
-	}
-	
-	if (m_cloud1 && m_cloud1->hasNormals())
-	{
-		normalSourceComboBox->addItem("Use cloud #1 normals", QVariant(LibpointmatcherNormals::USE_CLOUD1_NORMALS));
-		++lastIndex;
-		if (previouslySelectedItem == LibpointmatcherNormals::USE_CLOUD1_NORMALS || previouslySelectedItem < 0)
-		{
-			normalSourceComboBox->setCurrentIndex(lastIndex);
-			previouslySelectedItem = LibpointmatcherNormals::USE_CLOUD1_NORMALS;
-		}
-	}
-	
-	if (cpUseOtherCloudRadioButton->isChecked())
-	{
-		//return the cloud currently selected in the combox box
-		ccPointCloud* otherCloud = GetCloudFromCombo(cpOtherCloudComboBox, m_app->dbRootObject());
-		if (otherCloud && otherCloud->hasNormals())
-		{
-			normalSourceComboBox->addItem("Use core points normals", QVariant(LibpointmatcherNormals::USE_CORE_POINTS_NORMALS));
-			++lastIndex;
-			if (previouslySelectedItem == LibpointmatcherNormals::USE_CORE_POINTS_NORMALS || previouslySelectedItem < 0)
-			{
-				normalSourceComboBox->setCurrentIndex(lastIndex);
-				previouslySelectedItem = LibpointmatcherNormals::USE_CORE_POINTS_NORMALS;
-			}
-		}
-	}
-}
 
-ccPointCloud* LibpointmatcherDialog::getCorePointsCloud() const
-{
-	if (m_corePointsCloud)
-	{
-		return m_corePointsCloud;
-	}
-	else if (cpUseCloud1RadioButton->isChecked())
-	{
-		return m_cloud1;
-	}
-	else if (cpUseOtherCloudRadioButton->isChecked())
-	{
-		//return the cloud currently selected in the combox box
-		return GetCloudFromCombo(cpOtherCloudComboBox, m_app->dbRootObject());
-	}
-	else
-	{
-		return nullptr;
-	}
-}
-
-ccPointCloud* LibpointmatcherDialog::getNormalsOrientationCloud() const
-{
-	if (normOriUseCloudRadioButton->isChecked())
-	{
-		//return the cloud currently selected in the combox box
-		return GetCloudFromCombo(normOriCloudComboBox, m_app->dbRootObject());
-	}
-	else
-	{
-		return nullptr;
-	}
-}
 
 void LibpointmatcherDialog::setCloud1Visibility(bool state)
 {
@@ -582,41 +321,6 @@ void LibpointmatcherDialog::setCloud2Visibility(bool state)
 	}
 }
 
-LibpointmatcherNormals::ComputationMode LibpointmatcherDialog::getNormalsComputationMode() const
-{
-	//special case
-	if (normalSourceComboBox->currentIndex() >= 0)
-	{
-		int selectedItem = normalSourceComboBox->currentData().toInt();
-		if (selectedItem == LibpointmatcherNormals::USE_CLOUD1_NORMALS)
-		{
-			assert(m_cloud1 && m_cloud1->hasNormals());
-			return LibpointmatcherNormals::USE_CLOUD1_NORMALS;
-		}
-		else if (selectedItem == LibpointmatcherNormals::USE_CORE_POINTS_NORMALS)
-		{
-			return LibpointmatcherNormals::USE_CORE_POINTS_NORMALS;
-		}
-	}
-
-	//otherwise we are in the default mode
-	if (normMultiScaleRadioButton->isChecked())
-	{
-		return LibpointmatcherNormals::MULTI_SCALE_MODE;
-	}
-	else if (normVertRadioButton->isChecked())
-	{
-		return LibpointmatcherNormals::VERT_MODE;
-	}
-	else if (normHorizRadioButton->isChecked())
-	{
-		return LibpointmatcherNormals::HORIZ_MODE;
-	}
-	else /*if (normDefaultRadioButton->isChecked())*/
-	{
-		return LibpointmatcherNormals::DEFAULT_MODE;
-	}
-}
 
 LibpointmatcherDialog::ExportOptions LibpointmatcherDialog::getExportOption() const
 {
@@ -656,262 +360,4 @@ unsigned LibpointmatcherDialog::getMinPointsForStats(unsigned defaultValue/*=5*/
 	return useMinPoints4StatCheckBox->isChecked() ? static_cast<unsigned>(std::max(0,minPoints4StatSpinBox->value())) : defaultValue;
 }
 
-void LibpointmatcherDialog::loadParamsFromPersistentSettings()
-{
-	QSettings settings("Libpointmatcher");
-	loadParamsFrom(settings);
-}
 
-void LibpointmatcherDialog::loadParamsFrom(const QSettings& settings)
-{
-	//read out parameters
-	double normalScale = settings.value("NormalScale", normalScaleDoubleSpinBox->value()).toDouble();
-	int normModeInt = settings.value("NormalMode", static_cast<int>(getNormalsComputationMode())).toInt();
-	double normMinScale = settings.value("NormalMinScale", minScaleDoubleSpinBox->value()).toDouble();
-	double normStep = settings.value("NormalStep", stepScaleDoubleSpinBox->value()).toDouble();
-	double normMaxScale = settings.value("NormalMaxScale", maxScaleDoubleSpinBox->value()).toDouble();
-	bool normUseCorePoints = settings.value("NormalUseCorePoints", normUseCorePointsCheckBox->isChecked()).toBool();
-	int normPreferredOri = settings.value("NormalPreferedOri", normOriPreferredComboBox->currentIndex()).toInt();
-
-	double seachScale = settings.value("SearchScale", cylDiameterDoubleSpinBox->value()).toDouble();
-	double searchDepth = settings.value("SearchDepth", cylHalfHeightDoubleSpinBox->value()).toDouble();
-
-	double subsampleRadius = settings.value("SubsampleRadius", cpSubsamplingDoubleSpinBox->value()).toDouble();
-	bool subsampleEnabled = settings.value("SubsampleEnabled", cpSubsampleRadioButton->isChecked()).toBool();
-
-	double registrationError = settings.value("RegistrationError", rmsDoubleSpinBox->value()).toDouble();
-	bool registrationErrorEnabled = settings.value("RegistrationErrorEnabled", rmsCheckBox->isChecked()).toBool();
-
-	bool useSinglePass4Depth = settings.value("UseSinglePass4Depth", useSinglePass4DepthCheckBox->isChecked()).toBool();
-	bool positiveSearchOnly = settings.value("PositiveSearchOnly", positiveSearchOnlyCheckBox->isChecked()).toBool();
-	bool useMedian = settings.value("UseMedian", useMedianCheckBox->isChecked()).toBool();
-
-	bool useMinPoints4Stat = settings.value("UseMinPoints4Stat", useMinPoints4StatCheckBox->isChecked()).toBool();
-	int minPoints4Stat = settings.value("MinPoints4Stat", minPoints4StatSpinBox->value()).toInt();
-
-	int projDestIndex = settings.value("ProjDestIndex", projDestComboBox->currentIndex()).toInt();
-	bool useOriginalCloud = settings.value("UseOriginalCloud", useOriginalCloudCheckBox->isChecked()).toBool();
-
-	bool exportStdDevInfo = settings.value("ExportStdDevInfo", exportStdDevInfoCheckBox->isChecked()).toBool();
-	bool exportDensityAtProjScale = settings.value("ExportDensityAtProjScale", exportDensityAtProjScaleCheckBox->isChecked()).toBool();
-
-	int maxThreadCount = settings.value("MaxThreadCount", maxThreadCountSpinBox->maximum()).toInt();
-
-	bool usePrecisionMaps = settings.value("UsePrecisionMaps", precisionMapsGroupBox->isChecked()).toBool();
-	double pm1Scale = settings.value("PM1Scale", pm1ScaleDoubleSpinBox->value()).toDouble();
-	double pm2Scale = settings.value("PM2Scale", pm2ScaleDoubleSpinBox->value()).toDouble();
-
-	//apply parameters
-	normalScaleDoubleSpinBox->setValue(normalScale);
-	switch(normModeInt)
-	{
-	case LibpointmatcherNormals::USE_CLOUD1_NORMALS:
-	case LibpointmatcherNormals::USE_CORE_POINTS_NORMALS:
-	{
-		bool found = false;
-		for (int i = 0; i < normalSourceComboBox->count(); ++i)
-		{
-			if (normalSourceComboBox->itemData(i) == normModeInt)
-			{
-				normalSourceComboBox->setCurrentIndex(i);
-				found = true;
-				break;
-			}
-		}
-		if (!found)
-		{
-			ccLog::Warning("Can't restore the previous normal computation method (cloud #1 or core points has no normals)");
-		}
-	}
-	break;
-	
-	case LibpointmatcherNormals::DEFAULT_MODE:
-		normDefaultRadioButton->setChecked(true);
-		break;
-	
-	case LibpointmatcherNormals::MULTI_SCALE_MODE:
-		normMultiScaleRadioButton->setChecked(true);
-		break;
-	
-	case LibpointmatcherNormals::VERT_MODE:
-		normVertRadioButton->setChecked(true);
-		break;
-	
-	case LibpointmatcherNormals::HORIZ_MODE:
-		normHorizRadioButton->setChecked(true);
-		break;
-	
-	default:
-		//nothing to do
-		break;
-	}
-
-	minScaleDoubleSpinBox->setValue(normMinScale);
-	stepScaleDoubleSpinBox->setValue(normStep);
-	maxScaleDoubleSpinBox->setValue(normMaxScale);
-	normUseCorePointsCheckBox->setChecked(normUseCorePoints);
-	normOriPreferredComboBox->setCurrentIndex(normPreferredOri);
-
-	cylDiameterDoubleSpinBox->setValue(seachScale);
-	cylHalfHeightDoubleSpinBox->setValue(searchDepth);
-	
-	cpSubsamplingDoubleSpinBox->setValue(subsampleRadius);
-	if (subsampleEnabled)
-		cpSubsampleRadioButton->setChecked(true);
-	else
-		cpUseCloud1RadioButton->setChecked(true);
-
-	rmsCheckBox->setChecked(registrationErrorEnabled);
-	rmsDoubleSpinBox->setValue(registrationError);
-
-	useSinglePass4DepthCheckBox->setChecked(useSinglePass4Depth);
-	positiveSearchOnlyCheckBox->setChecked(positiveSearchOnly);
-	useMedianCheckBox->setChecked(useMedian);
-	
-	useMinPoints4StatCheckBox->setChecked(useMinPoints4Stat);
-	minPoints4StatSpinBox->setValue(minPoints4Stat);
-
-	projDestComboBox->setCurrentIndex(projDestIndex);
-	useOriginalCloudCheckBox->setChecked(useOriginalCloud);
-
-	exportStdDevInfoCheckBox->setChecked(exportStdDevInfo);
-	exportDensityAtProjScaleCheckBox->setChecked(exportDensityAtProjScale);
-
-	maxThreadCountSpinBox->setValue(maxThreadCount);
-
-	precisionMapsGroupBox->setChecked(usePrecisionMaps);
-	pm1ScaleDoubleSpinBox->setValue(pm1Scale);
-	pm2ScaleDoubleSpinBox->setValue(pm2Scale);
-}
-
-void LibpointmatcherDialog::saveParamsToPersistentSettings()
-{
-	QSettings settings("Libpointmatcher");
-	saveParamsTo(settings);
-}
-
-void LibpointmatcherDialog::saveParamsTo(QSettings& settings)
-{
-	//save parameters
-	settings.setValue("NormalScale", normalScaleDoubleSpinBox->value());
-	settings.setValue("NormalMode", static_cast<int>(getNormalsComputationMode()));
-	settings.setValue("NormalMinScale", minScaleDoubleSpinBox->value());
-	settings.setValue("NormalStep", stepScaleDoubleSpinBox->value());
-	settings.setValue("NormalMaxScale", maxScaleDoubleSpinBox->value());
-	settings.setValue("NormalUseCorePoints", normUseCorePointsCheckBox->isChecked());
-	settings.setValue("NormalPreferedOri", normOriPreferredComboBox->currentIndex());
-
-	settings.setValue("SearchScale", cylDiameterDoubleSpinBox->value());
-	settings.setValue("SearchDepth", cylHalfHeightDoubleSpinBox->value());
-
-	settings.setValue("SubsampleRadius", cpSubsamplingDoubleSpinBox->value());
-	settings.setValue("SubsampleEnabled", cpSubsampleRadioButton->isChecked());
-
-	settings.setValue("RegistrationError", rmsDoubleSpinBox->value());
-	settings.setValue("RegistrationErrorEnabled", rmsCheckBox->isChecked());
-
-	settings.setValue("UseSinglePass4Depth", useSinglePass4DepthCheckBox->isChecked());
-	settings.setValue("PositiveSearchOnly", positiveSearchOnlyCheckBox->isChecked());
-	settings.setValue("UseMedian", useMedianCheckBox->isChecked());
-
-	settings.setValue("UseMinPoints4Stat", useMinPoints4StatCheckBox->isChecked());
-	settings.setValue("MinPoints4Stat", minPoints4StatSpinBox->value());
-
-	settings.setValue("ProjDestIndex", projDestComboBox->currentIndex());
-	settings.setValue("UseOriginalCloud", useOriginalCloudCheckBox->isChecked());
-
-	settings.setValue("ExportStdDevInfo", exportStdDevInfoCheckBox->isChecked());
-	settings.setValue("ExportDensityAtProjScale", exportDensityAtProjScaleCheckBox->isChecked());
-
-	settings.setValue("MaxThreadCount", maxThreadCountSpinBox->value());
-
-	settings.setValue("UsePrecisionMaps", precisionMapsGroupBox->isChecked());
-	settings.setValue("PM1Scale", pm1ScaleDoubleSpinBox->value());
-	settings.setValue("PM2Scale", pm2ScaleDoubleSpinBox->value());
-}
-
-void LibpointmatcherDialog::getParamsFromFile()
-{
-	//select file to open
-	QString filename;
-	{
-		QSettings settings("Libpointmatcher");
-		QString currentPath = settings.value("currentPath", ccFileUtils::defaultDocPath()).toString();
-
-		filename = QFileDialog::getOpenFileName(this, "Load M3C2 parameters", currentPath, "*.txt");
-		if (filename.isEmpty())
-			return;
-
-		//we update current file path
-		currentPath = QFileInfo(filename).absolutePath();
-		settings.setValue("currentPath", currentPath);
-	}
-
-	loadParamsFromFile(filename);
-}
-
-bool LibpointmatcherDialog::loadParamsFromFile(QString filename)
-{
-	QSettings fileSettings(filename, QSettings::IniFormat);
-	//check validity
-	if (!fileSettings.contains("M3C2VER"))
-	{
-		QMessageBox::critical(this, "Invalid file", "File doesn't seem to be a valid M3C2 parameters file ('M3C2VER' not found)!");
-		return false;
-	}
-
-	loadParamsFrom(fileSettings);
-
-	return true;
-}
-
-void LibpointmatcherDialog::saveParamsToFile()
-{
-	//select file to save
-	QString filename;
-	{
-		QSettings settings("Libpointmatcher");
-		QString currentPath = settings.value("currentPath", ccFileUtils::defaultDocPath()).toString();
-
-		filename = QFileDialog::getSaveFileName(this, "Save M3C2 parameters", currentPath + QString("/m3c2_params.txt"), "*.txt");
-		if (filename.isEmpty())
-			return;
-
-		//we update current file path
-		currentPath = QFileInfo(filename).absolutePath();
-		settings.setValue("currentPath", currentPath);
-	}
-
-	//save file
-	{
-		QSettings fileSettings(filename, QSettings::IniFormat);
-		//set version tag (mandatory for a valid parameters file!)
-		fileSettings.setValue("M3C2VER", QVariant::fromValue<int>(1));
-		saveParamsTo(fileSettings);
-	}
-}
-
-void LibpointmatcherDialog::guessParams(bool fastMode/*=false*/)
-{
-	if (!m_cloud1 || !m_cloud2)
-		return;
-
-	unsigned minPoints4Stats = getMinPointsForStats() * 6; //see article: ideal = 30 while default = 5
-	//Guessed parameters
-	LibpointmatcherTools::GuessedParams params;
-	params.preferredDimension = normOriPreferredComboBox->currentIndex();
-
-	if (LibpointmatcherTools::GuessBestParams(m_cloud1, m_cloud2, minPoints4Stats, params, fastMode, m_app))
-	{
-		normalScaleDoubleSpinBox->setValue(params.normScale);
-		cylDiameterDoubleSpinBox->setValue(params.projScale);
-		cylHalfHeightDoubleSpinBox->setValue(params.projDepth);
-		normOriPreferredComboBox->setCurrentIndex(params.preferredDimension);
-
-		minScaleDoubleSpinBox->setValue(params.normScale / 2);
-		stepScaleDoubleSpinBox->setValue(params.normScale / 2);
-		maxScaleDoubleSpinBox->setValue(params.normScale * 2);
-
-		cpSubsamplingDoubleSpinBox->setValue(params.projScale / 2);
-	}
-}

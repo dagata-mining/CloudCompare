@@ -16,6 +16,7 @@
 //##########################################################################
 
 #include "LibpointmatcherTools.h"
+#include "LibpointmatcherDialog.h"
 
 //CCCoreLib
 #include <Neighbourhood.h>
@@ -877,19 +878,10 @@ CCCoreLib::ReferenceCloud* LibpointmatcherTools::pointmatcherToCC(DP* cloud, ccP
 
 	return newCloud;
 }
-DP  LibpointmatcherTools::filter(DP cloud)
+DP  LibpointmatcherTools::filter(DP cloud, std::vector< std::shared_ptr<PM::DataPointsFilter>> filters)
 {
-	std::shared_ptr<PM::DataPointsFilter> params;
-	params = PM::get().DataPointsFilterRegistrar.create(
-		"VoxelGridDataPointsFilter",
-		{
-			{"vSizeX", "0.1"},
-			{"vSizeY", "0.1"},
-			{"vSizeZ", "0.1"},
-			{"useCentroid","1"},
-			{"averageExistingDescriptors","0"}
-		}
-	);
-	params->inPlaceFilter(cloud);
+	for (int i = 0; i < filters.size(); i++) {
+		filters[i]->inPlaceFilter(cloud);
+	}
 	return cloud;
 }
