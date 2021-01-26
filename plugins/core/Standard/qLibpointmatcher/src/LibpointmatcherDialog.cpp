@@ -66,15 +66,32 @@ LibpointmatcherDialog::LibpointmatcherDialog(ccMainAppInterface* app)
 
 }
 
-
+void LibpointmatcherDialog::acceptNormalOptions()
+{
+	std::shared_ptr<PM::DataPointsFilter> normalParams;
+	//SurfaceNormalFilter
+	std::string knnValue = std::to_string(maxDensity->value());
+	std::string epsilonValue = std::to_string(maxDensity->value());
+	normalParams = PM::get().DataPointsFilterRegistrar.create(
+		"SurfaceNormalDataPointsFilter",
+		{
+			{"knn", knnValue},
+			{"epsilon", epsilonValue},
+			{"keepNormals", "1"},
+			{"keepDensities", "1"},
+			{"keepEigenValues", "0"},
+			{"keepEigenVectors", "0"},
+			{"keepMatchedIds", "0"},
+		}
+	);
+}
 
 
 
 void LibpointmatcherDialog::acceptFilterOptions() {
 	int indexFilter = Options->currentIndex();
-	bool needNormals = false;
 	bool useExistingNormals = true;
-	
+	bool needNormals=false;
 
 	std::shared_ptr<PM::DataPointsFilter> filterParams;
 	
@@ -91,6 +108,9 @@ void LibpointmatcherDialog::acceptFilterOptions() {
 				{"maxDensity", maxDensityValue},
 			}
 		);
+
+		useExistingNormals = false; 
+		needNormals = true;
 		break;
 	}
 	case 1:
@@ -256,7 +276,7 @@ void LibpointmatcherDialog::acceptFilterOptions() {
 				{"torqueNorm", torqueNormValue},
 			}
 		);
-		if (!covNormals->isChecked()) { useExistingNormals = false; }
+		if (!covNormals->isChecked()) { m_useExistingNormals = false; }
 		needNormals = true;
 		break;
 	}
@@ -289,6 +309,8 @@ void LibpointmatcherDialog::acceptFilterOptions() {
 	}
 	//Push into the fitler params vector
 	m_filters.push_back(filterParams);
+	m_needNormals.push_back(needNormals);
+	m_useExistingNormals.push_back(useExistingNormals);
 }
 
 

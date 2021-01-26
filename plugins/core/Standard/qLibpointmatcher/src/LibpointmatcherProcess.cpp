@@ -436,12 +436,12 @@ void ComputeM3C2DistForPoint(unsigned index)
 	}
 }
 bool LibpointmatcherProcess::Subsample(const LibpointmatcherDialog& dlg, ccHObject* entity, QString& errorMessage, QWidget* parentWidget/*=nullptr*/, ccMainAppInterface* app/*=nullptr*/)
-{	
+{
 	errorMessage.clear();
 
 	//get the clouds in the right order
-	
-	
+
+
 	if (!entity->isA(CC_TYPES::POINT_CLOUD))
 	{
 		assert(false);
@@ -449,16 +449,34 @@ bool LibpointmatcherProcess::Subsample(const LibpointmatcherDialog& dlg, ccHObje
 	}
 	ccPointCloud* cloud1 = ccHObjectCaster::ToPointCloud(entity);
 
+
 	//start the job
 	bool error = false;
 
 	//start Subsampling 
-	
+	bool hasNormalDescriptors;
 	//Converting to Pointmatcher format
-	DP convertedCloud = LibpointmatcherTools::ccToPointMatcher(cloud1);
+	//verify the type of transform depending if it has normal or not
+	DP convertedCloud;
+	if (cloud1->hasNormals() && dlg.needAtLeastOneNormal() && dlg.useAtLeastOneNormal())
+	{
+		//Has Normals and will be added
+		convertedCloud = LibpointmatcherTools::ccNormalsToPointMatcher(cloud1);
+		hasNormalDescriptors = true;
+	}
+	else
+	{
+		convertedCloud = LibpointmatcherTools::ccToPointMatcher(cloud1);
+		hasNormalDescriptors = false;
+	}
+	// Iterate through the different filters
+	
+	
 	// Filtering with DP format
 	DP filteredCloud;
-	filteredCloud = LibpointmatcherTools::filter(convertedCloud, dlg.getFilters());
+	filteredCloud = LibpointmatcherTools::filter(convertedCloud, dlg, hasNormalDescriptors);
+	
+	
 	DP* filteredCloudPtr = &filteredCloud;
 	//Transforming the Pointmatcher subsampled to a ref cloud
 	CCCoreLib::ReferenceCloud* subsampled = LibpointmatcherTools::pointmatcherToCC(filteredCloudPtr, cloud1);
@@ -481,11 +499,10 @@ bool LibpointmatcherProcess::Subsample(const LibpointmatcherDialog& dlg, ccHObje
 	}
 	else
 	{
-		errorMessage = "Failed to compute sub-sampled core points!";
+		errorMessage = "Failed to compute!";
 		error = true;
 	}
-	if (app)
-		app->refreshAll();
+	
 	return !error;
 }
 

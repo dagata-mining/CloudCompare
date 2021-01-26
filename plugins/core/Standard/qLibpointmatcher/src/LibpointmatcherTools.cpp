@@ -848,6 +848,64 @@ DP LibpointmatcherTools::ccToPointMatcher(ccPointCloud* cloud)
 
 	return cloudDP;
 }
+DP LibpointmatcherTools::ccNormalsToPointMatcher(ccPointCloud* cloud)
+{
+	typedef DP::Label Label;
+	typedef DP::Labels Labels;
+	typedef DP::View View;
+
+	if (cloud->size() <= 0)
+		return DP();
+	Labels featLabels;
+	Labels descLabels;
+	std::vector<bool> isFeature;
+	featLabels.push_back(Label("x", 1));
+	isFeature.push_back(true);
+	featLabels.push_back(Label("y", 1));
+	isFeature.push_back(true);
+	featLabels.push_back(Label("z", 1));
+	isFeature.push_back(true);
+	featLabels.push_back(Label("i", 1));
+	isFeature.push_back(true);
+
+	descLabels.push_back(Label("normals", 3));
+	isFeature.push_back(false);
+	isFeature.push_back(false);
+	isFeature.push_back(false);
+
+	featLabels.push_back(Label("pad", 1));
+
+
+	DP cloudDP(featLabels, descLabels, cloud->size());
+	cloudDP.getFeatureViewByName("pad").setConstant(1);
+	// fill cloud
+	View view(cloudDP.getFeatureViewByName("x"));
+	View viewNormalX(cloudDP.getDescriptorRowViewByName("normals", 0));
+	View viewNormalY(cloudDP.getDescriptorRowViewByName("normals", 1));
+	View viewNormalZ(cloudDP.getDescriptorRowViewByName("normals", 2));
+	const CCVector3* P3D;
+	CCVector3 N3D;
+	int cloudSize = static_cast<int>(cloud->size());
+#if defined(_OPENMP)
+#pragma omp parallel for
+#endif
+	for (int i = 0; i < cloudSize; ++i)
+	{
+		P3D = cloud->getPoint(i);
+		N3D = cloud->getPointNormal(i);
+
+		view(0, i) = P3D->x;
+		view(1, i) = P3D->y;
+		view(2, i) = P3D->z;
+		view(3, i) = i;
+		viewNormalX(0, i) = N3D.x;
+		viewNormalY(0, i) = N3D.y;
+		viewNormalZ(0, i) = N3D.z;
+
+	}
+
+	return cloudDP;
+}
 CCCoreLib::ReferenceCloud* LibpointmatcherTools::pointmatcherToCC(DP* cloud, ccPointCloud* ref)
 {
 	typedef DP::View View;
@@ -878,10 +936,24 @@ CCCoreLib::ReferenceCloud* LibpointmatcherTools::pointmatcherToCC(DP* cloud, ccP
 
 	return newCloud;
 }
-DP  LibpointmatcherTools::filter(DP cloud, std::vector< std::shared_ptr<PM::DataPointsFilter>> filters)
+
+
+DP  LibpointmatcherTools::filter(DP cloud, const LibpointmatcherDialog& dlg, bool hasNormalDescriptors)
 {
-	for (int i = 0; i < filters.size(); i++) {
-		filters[i]->inPlaceFilter(cloud);
+	bool hasNormalsDescriptorsIter=hasNormalDescriptors;
+	std::vector< std::shared_ptr<PM::DataPointsFilter>>* filters;
+	for (int i = 0; i < filters->size(); i++) {
+			
+		if (dlg.getNeedNormals(i) && !hasNormalDescriptors)
+		{
+			//Enable Surface Creating 
+
+			// Prevent from redoind the surface creating normals on the next iteration
+			hasNormalsDescriptorsIter = true;
+		}
+
+
+		filters->at(i)->inPlaceFilter(cloud);
 	}
 	return cloud;
 }

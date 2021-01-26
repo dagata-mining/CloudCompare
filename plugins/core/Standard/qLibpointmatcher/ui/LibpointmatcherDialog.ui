@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>788</width>
+    <width>770</width>
     <height>442</height>
    </rect>
   </property>
@@ -21,7 +21,7 @@
    <item>
     <widget class="QTabWidget" name="m3c2PMTabWidget">
      <property name="currentIndex">
-      <number>0</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="filterParams">
       <property name="accessibleName">
@@ -1638,260 +1638,122 @@
            <number>0</number>
           </property>
           <item>
-           <widget class="QGroupBox" name="normCalcModeGroupBox">
+           <widget class="QGroupBox" name="groupBox_12">
             <property name="title">
-             <string>Calculation mode</string>
+             <string>Options from Libpointmatcher normal creator</string>
             </property>
-            <layout class="QVBoxLayout" name="verticalLayout_2">
-             <item>
-              <layout class="QHBoxLayout" name="horizontalLayout_2">
-               <item>
-                <widget class="QRadioButton" name="normDefaultRadioButton">
-                 <property name="toolTip">
-                  <string>Default fixed scale calculation</string>
-                 </property>
-                 <property name="text">
-                  <string>Default</string>
-                 </property>
-                 <property name="checked">
-                  <bool>true</bool>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QRadioButton" name="normMultiScaleRadioButton">
-                 <property name="toolTip">
-                  <string>Automatically use the scale at which the cloud is the more 'flat'</string>
-                 </property>
-                 <property name="text">
-                  <string>Multi-scale</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QRadioButton" name="normVertRadioButton">
-                 <property name="toolTip">
-                  <string>Make the resulting normals purely Vertical</string>
-                 </property>
-                 <property name="text">
-                  <string>Vertical</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QRadioButton" name="normHorizRadioButton">
-                 <property name="toolTip">
-                  <string>Make the resulting normals purely Horizontal</string>
-                 </property>
-                 <property name="text">
-                  <string>Horizontal</string>
-                 </property>
-                </widget>
-               </item>
-              </layout>
-             </item>
-             <item>
-              <widget class="QFrame" name="normMultiScaleFrame">
-               <property name="enabled">
-                <bool>false</bool>
-               </property>
-               <layout class="QHBoxLayout" name="horizontalLayout">
-                <item>
-                 <widget class="QDoubleSpinBox" name="minScaleDoubleSpinBox">
-                  <property name="toolTip">
-                   <string>Mininum scale</string>
-                  </property>
-                  <property name="prefix">
-                   <string>Min = </string>
-                  </property>
-                  <property name="decimals">
-                   <number>6</number>
-                  </property>
-                  <property name="minimum">
-                   <double>0.000001000000000</double>
-                  </property>
-                  <property name="maximum">
-                   <double>1000000000.000000000000000</double>
-                  </property>
-                  <property name="value">
-                   <double>1.000000000000000</double>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QDoubleSpinBox" name="stepScaleDoubleSpinBox">
-                  <property name="toolTip">
-                   <string>Step</string>
-                  </property>
-                  <property name="prefix">
-                   <string>Step = </string>
-                  </property>
-                  <property name="decimals">
-                   <number>6</number>
-                  </property>
-                  <property name="minimum">
-                   <double>0.000001000000000</double>
-                  </property>
-                  <property name="maximum">
-                   <double>1000000000.000000000000000</double>
-                  </property>
-                  <property name="value">
-                   <double>1.000000000000000</double>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QDoubleSpinBox" name="maxScaleDoubleSpinBox">
-                  <property name="toolTip">
-                   <string>Max scale</string>
-                  </property>
-                  <property name="prefix">
-                   <string>Max = </string>
-                  </property>
-                  <property name="decimals">
-                   <number>6</number>
-                  </property>
-                  <property name="minimum">
-                   <double>0.000001000000000</double>
-                  </property>
-                  <property name="maximum">
-                   <double>1000000000.000000000000000</double>
-                  </property>
-                  <property name="value">
-                   <double>1.000000000000000</double>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
-              </widget>
-             </item>
-             <item>
-              <widget class="QCheckBox" name="normUseCorePointsCheckBox">
-               <property name="toolTip">
-                <string>Use core points for normal calculation (instead of cloud #1)</string>
-               </property>
-               <property name="text">
-                <string>Use core points for normal calculation</string>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </widget>
-          </item>
-          <item>
-           <widget class="QGroupBox" name="normOriGroupBox">
-            <property name="title">
-             <string>Orientation</string>
-            </property>
-            <layout class="QFormLayout" name="formLayout_2">
-             <item row="0" column="0">
-              <widget class="QRadioButton" name="normOriPreferredRadioButton">
-               <property name="text">
-                <string>Preferred orientation</string>
-               </property>
-               <property name="checked">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="1">
-              <widget class="QComboBox" name="normOriPreferredComboBox">
-               <property name="currentIndex">
-                <number>4</number>
-               </property>
-               <property name="sizeAdjustPolicy">
-                <enum>QComboBox::AdjustToContents</enum>
-               </property>
-               <item>
-                <property name="text">
-                 <string notr="true">+X</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string notr="true">-X</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string notr="true">+Y</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string notr="true">-Y</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string notr="true">+Z</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string notr="true">-Z</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>+Barycenter</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>- Barycenter</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string notr="true">+ (0,0,0)</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string notr="true">- (0,0,0)</string>
-                </property>
-               </item>
-              </widget>
-             </item>
-             <item row="1" column="0">
-              <widget class="QRadioButton" name="normOriUseCloudRadioButton">
-               <property name="toolTip">
-                <string>Sensor(s) position(s) as a cloud (one point per position)</string>
-               </property>
-               <property name="text">
-                <string>Use sensor position(s)</string>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="1">
-              <widget class="QComboBox" name="normOriCloudComboBox">
-               <property name="enabled">
-                <bool>false</bool>
-               </property>
-               <property name="toolTip">
-                <string>Alternative core points cloud</string>
-               </property>
-              </widget>
-             </item>
-            </layout>
+            <widget class="QDoubleSpinBox" name="normalsKnn">
+             <property name="geometry">
+              <rect>
+               <x>10</x>
+               <y>50</y>
+               <width>101</width>
+               <height>22</height>
+              </rect>
+             </property>
+             <property name="suffix">
+              <string> pts</string>
+             </property>
+             <property name="decimals">
+              <number>0</number>
+             </property>
+             <property name="minimum">
+              <double>3.000000000000000</double>
+             </property>
+             <property name="maximum">
+              <double>99999.000000000000000</double>
+             </property>
+             <property name="singleStep">
+              <double>1.000000000000000</double>
+             </property>
+             <property name="value">
+              <double>5.000000000000000</double>
+             </property>
+            </widget>
+            <widget class="QLabel" name="normalsKnnTitle">
+             <property name="geometry">
+              <rect>
+               <x>10</x>
+               <y>30</y>
+               <width>481</width>
+               <height>16</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>Number of neighboring points (including the point itself) to consider when extracting surface normal</string>
+             </property>
+            </widget>
+            <widget class="QDoubleSpinBox" name="normalsEpsilon">
+             <property name="geometry">
+              <rect>
+               <x>10</x>
+               <y>100</y>
+               <width>101</width>
+               <height>22</height>
+              </rect>
+             </property>
+             <property name="suffix">
+              <string/>
+             </property>
+             <property name="decimals">
+              <number>1</number>
+             </property>
+             <property name="minimum">
+              <double>0.000000000000000</double>
+             </property>
+             <property name="maximum">
+              <double>99999.000000000000000</double>
+             </property>
+             <property name="singleStep">
+              <double>1.000000000000000</double>
+             </property>
+             <property name="value">
+              <double>0.000000000000000</double>
+             </property>
+            </widget>
+            <widget class="QLabel" name="normalsKnnTitle_2">
+             <property name="geometry">
+              <rect>
+               <x>10</x>
+               <y>80</y>
+               <width>241</width>
+               <height>16</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>Approximation used in nearest neighbor search</string>
+             </property>
+            </widget>
+            <widget class="QLabel" name="normalsKnnTitle_3">
+             <property name="geometry">
+              <rect>
+               <x>10</x>
+               <y>160</y>
+               <width>561</width>
+               <height>16</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>*Some filters require normals. If the cloud doesn't have any normals, Libpointmacther will create it's own normals</string>
+             </property>
+            </widget>
+            <widget class="QLabel" name="normalsKnnTitle_4">
+             <property name="geometry">
+              <rect>
+               <x>10</x>
+               <y>180</y>
+               <width>561</width>
+               <height>16</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>* It is recommended to use CloudCompare Normals to have more options</string>
+             </property>
+            </widget>
            </widget>
           </item>
          </layout>
         </widget>
-       </item>
-       <item>
-        <spacer name="verticalSpacer">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>40</height>
-          </size>
-         </property>
-        </spacer>
        </item>
       </layout>
      </widget>
@@ -2330,18 +2192,6 @@ p, li { white-space: pre-wrap; }
  </widget>
  <tabstops>
   <tabstop>m3c2PMTabWidget</tabstop>
-  <tabstop>normDefaultRadioButton</tabstop>
-  <tabstop>normMultiScaleRadioButton</tabstop>
-  <tabstop>normVertRadioButton</tabstop>
-  <tabstop>normHorizRadioButton</tabstop>
-  <tabstop>minScaleDoubleSpinBox</tabstop>
-  <tabstop>stepScaleDoubleSpinBox</tabstop>
-  <tabstop>maxScaleDoubleSpinBox</tabstop>
-  <tabstop>normUseCorePointsCheckBox</tabstop>
-  <tabstop>normOriPreferredRadioButton</tabstop>
-  <tabstop>normOriPreferredComboBox</tabstop>
-  <tabstop>normOriUseCloudRadioButton</tabstop>
-  <tabstop>normOriCloudComboBox</tabstop>
   <tabstop>useSinglePass4DepthCheckBox</tabstop>
   <tabstop>useMedianCheckBox</tabstop>
   <tabstop>useMinPoints4StatCheckBox</tabstop>
@@ -2389,50 +2239,34 @@ p, li { white-space: pre-wrap; }
    </hints>
   </connection>
   <connection>
-   <sender>normMultiScaleRadioButton</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>normMultiScaleFrame</receiver>
-   <slot>setEnabled(bool)</slot>
+   <sender>Options</sender>
+   <signal>currentChanged(int)</signal>
+   <receiver>filterType</receiver>
+   <slot>setCurrentIndex(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>220</x>
-     <y>136</y>
+     <x>392</x>
+     <y>240</y>
     </hint>
     <hint type="destinationlabel">
-     <x>326</x>
-     <y>181</y>
+     <x>409</x>
+     <y>72</y>
     </hint>
    </hints>
   </connection>
   <connection>
-   <sender>normOriUseCloudRadioButton</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>normOriCloudComboBox</receiver>
-   <slot>setEnabled(bool)</slot>
+   <sender>filterType</sender>
+   <signal>currentIndexChanged(int)</signal>
+   <receiver>Options</receiver>
+   <slot>setCurrentIndex(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>125</x>
-     <y>288</y>
+     <x>393</x>
+     <y>72</y>
     </hint>
     <hint type="destinationlabel">
-     <x>347</x>
-     <y>289</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>normOriPreferredRadioButton</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>normOriPreferredComboBox</receiver>
-   <slot>setEnabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>149</x>
-     <y>260</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>261</x>
-     <y>259</y>
+     <x>408</x>
+     <y>194</y>
     </hint>
    </hints>
   </connection>
@@ -2468,45 +2302,13 @@ p, li { white-space: pre-wrap; }
     </hint>
    </hints>
   </connection>
-  <connection>
-   <sender>filterType</sender>
-   <signal>currentIndexChanged(int)</signal>
-   <receiver>Options</receiver>
-   <slot>setCurrentIndex(int)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>393</x>
-     <y>72</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>408</x>
-     <y>194</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>Options</sender>
-   <signal>currentChanged(int)</signal>
-   <receiver>filterType</receiver>
-   <slot>setCurrentIndex(int)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>392</x>
-     <y>240</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>409</x>
-     <y>72</y>
-    </hint>
-   </hints>
-  </connection>
  </connections>
  <buttongroups>
-  <buttongroup name="buttonGroup"/>
   <buttongroup name="buttonGroup_6"/>
-  <buttongroup name="buttonGroup_2"/>
-  <buttongroup name="buttonGroup_5"/>
-  <buttongroup name="buttonGroup_4"/>
   <buttongroup name="buttonGroup_3"/>
+  <buttongroup name="buttonGroup_4"/>
+  <buttongroup name="buttonGroup"/>
+  <buttongroup name="buttonGroup_5"/>
+  <buttongroup name="buttonGroup_2"/>
  </buttongroups>
 </ui>

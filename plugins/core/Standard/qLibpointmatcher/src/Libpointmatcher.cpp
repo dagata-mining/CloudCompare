@@ -95,6 +95,10 @@ void Libpointmatcher::doAction()
 			m_app->dispToConsole(errorMessage, ccMainAppInterface::ERR_CONSOLE_MESSAGE);
 		}
 	}
+	if (m_app)
+	{
+		m_app->refreshAll()
+	};
 
 }
 

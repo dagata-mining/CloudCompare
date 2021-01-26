@@ -45,8 +45,22 @@ public:
 	//! Returns cloud #2
 	ccPointCloud* getCloud2() const { return m_cloud2; }
 
+	//! Do we use existing normals will tell to convert to DP with normals descriptors 
+	std::vector<bool> useExistingNormals() const { return m_useExistingNormals; }
+
+	//! Do we need normals to be calculated
+	std::vector<bool> needNormals() const { return m_needNormals; }
+
+	//! Do we need normals to be calculated at index
+	bool getNeedNormals(int i) const { return m_needNormals[i]; }
 
 
+	//! Verify is we need at least normals one time
+	bool needAtLeastOneNormal() const { return std::all_of(m_needNormals.begin(), m_needNormals.end(), [](bool v) { return v; }); };
+
+	//! Verify is we import normals one time
+	bool useAtLeastOneNormal() const { return std::all_of(m_useExistingNormals.begin(), m_useExistingNormals.end(), [](bool v) { return v; }); };
+	
 	//! Returns vector of parameters
 	std::vector< std::shared_ptr<PM::DataPointsFilter>> getFilters() const { return m_filters; }
 
@@ -71,6 +85,8 @@ public:
 	int getMaxThreadCount() const;
 	// change the filter options
 	void acceptFilterOptions();
+	// accept Normals Options
+	void acceptNormalOptions();
 
 
 protected:
@@ -91,6 +107,9 @@ protected: //members
 	ccPointCloud* m_cloud2;
 	ccPointCloud* m_corePointsCloud;
 	std::vector< std::shared_ptr<PM::DataPointsFilter>> m_filters;
+	std::vector<bool> m_needNormals;
+	std::vector<bool> m_useExistingNormals;
+
 };
 
 #endif 
