@@ -822,14 +822,17 @@ DP LibpointmatcherTools::ccToPointMatcher(ccPointCloud* cloud)
 	isFeature.push_back(true);
 	featLabels.push_back(Label("z", 1));
 	isFeature.push_back(true);
-	featLabels.push_back(Label("i", 1));
-	isFeature.push_back(true);
+
+	descLabels.push_back(Label("i", 1));
+	isFeature.push_back(false);
+
 	featLabels.push_back(Label("pad", 1));
 
 	DP cloudDP(featLabels, descLabels, cloud->size());
 	cloudDP.getFeatureViewByName("pad").setConstant(1);
 	// fill cloud
 	View view(cloudDP.getFeatureViewByName("x"));
+	View viewIndex(cloudDP.getDescriptorRowViewByName("i", 0));
 	const CCVector3* P3D;
 
 	int cloudSize = static_cast<int>(cloud->size());
@@ -842,7 +845,7 @@ DP LibpointmatcherTools::ccToPointMatcher(ccPointCloud* cloud)
 		view(0, i) = P3D->x;
 		view(1, i) = P3D->y;
 		view(2, i) = P3D->z;
-		view(3, i) = i;
+		viewIndex(0, i) = i;
 
 	}
 
@@ -865,8 +868,10 @@ DP LibpointmatcherTools::ccNormalsToPointMatcher(ccPointCloud* cloud)
 	isFeature.push_back(true);
 	featLabels.push_back(Label("z", 1));
 	isFeature.push_back(true);
-	featLabels.push_back(Label("i", 1));
-	isFeature.push_back(true);
+
+
+	descLabels.push_back(Label("i", 1));
+	isFeature.push_back(false);
 
 	descLabels.push_back(Label("normals", 3));
 	isFeature.push_back(false);
@@ -880,6 +885,7 @@ DP LibpointmatcherTools::ccNormalsToPointMatcher(ccPointCloud* cloud)
 	cloudDP.getFeatureViewByName("pad").setConstant(1);
 	// fill cloud
 	View view(cloudDP.getFeatureViewByName("x"));
+	View viewIndex(cloudDP.getDescriptorRowViewByName("i", 0));
 	View viewNormalX(cloudDP.getDescriptorRowViewByName("normals", 0));
 	View viewNormalY(cloudDP.getDescriptorRowViewByName("normals", 1));
 	View viewNormalZ(cloudDP.getDescriptorRowViewByName("normals", 2));
@@ -897,7 +903,7 @@ DP LibpointmatcherTools::ccNormalsToPointMatcher(ccPointCloud* cloud)
 		view(0, i) = P3D->x;
 		view(1, i) = P3D->y;
 		view(2, i) = P3D->z;
-		view(3, i) = i;
+		viewIndex(0, i) = i;
 		viewNormalX(0, i) = N3D.x;
 		viewNormalY(0, i) = N3D.y;
 		viewNormalZ(0, i) = N3D.z;
@@ -914,46 +920,58 @@ CCCoreLib::ReferenceCloud* LibpointmatcherTools::pointmatcherToCC(DP* cloud, ccP
 	//we have less points than requested?!
 	unsigned theCloudSize = ref->size();
 	unsigned newNumberOfPoints = cloud->features.cols();
+
 	if (theCloudSize <= newNumberOfPoints)
 	{
+		ccLog::Print(QString("Nothing to subsample returning nothing"));
 		return newCloud;
+		
 	}
 	if (cloud->features.cols() == 0)
 	{
+		ccLog::Print(QString("Nothing to subsample returning nothing"));
 		return  newCloud;
+		
 	}
-
+	
 	//We then add the point indexes that were returned by the filtering of the point cloud
-	View view(cloud->getFeatureViewByName("x"));
+	View viewIndex(cloud->getDescriptorViewByName("i"));
 	int cloudSize = static_cast<int>(newNumberOfPoints);
 #if defined(_OPENMP)
 #pragma omp parallel for
 #endif
 	for (int i = 0; i < cloudSize; ++i)
 	{
-		newCloud->addPointIndex(view(3, i));
+		newCloud->addPointIndex(viewIndex(0, i));
 	}
 
 	return newCloud;
 }
 
 
-DP  LibpointmatcherTools::filter(DP cloud, const LibpointmatcherDialog& dlg, bool hasNormalDescriptors)
+DP  LibpointmatcherTools::filter(DP cloud, std::vector< std::shared_ptr<PM::DataPointsFilter>> filters, std::shared_ptr<PM::DataPointsFilter> normalParams, std::vector<bool> needNormals, bool hasNormalDescriptors)
 {
 	bool hasNormalsDescriptorsIter=hasNormalDescriptors;
-	std::vector< std::shared_ptr<PM::DataPointsFilter>>* filters;
-	for (int i = 0; i < filters->size(); i++) {
+	//Initialize data point chain
+	PM::DataPointsFilters list;
+	list.init();
+	
+	for (int i = 0; i < filters.size(); i++) {
 			
-		if (dlg.getNeedNormals(i) && !hasNormalDescriptors)
+		if (needNormals[i] && !hasNormalDescriptors)
 		{
 			//Enable Surface Creating 
-
-			// Prevent from redoind the surface creating normals on the next iteration
+			list.push_back(normalParams);
+			// Prevent from redoing the surface creating normals on the next iteration
 			hasNormalsDescriptorsIter = true;
+			ccLog::Print("should not be here");
 		}
+		list.push_back(filters[i]);
 
-
-		filters->at(i)->inPlaceFilter(cloud);
+		
 	}
+	list.apply(cloud);
+	ccLog::Print(QString::number(filters.size()));
+
 	return cloud;
 }

@@ -118,7 +118,7 @@ public:
 	// Converts a pointMatcher Entity to a Cloudcompare ReferenceCloud 
 	static CCCoreLib::ReferenceCloud* pointmatcherToCC(DP* cloud, ccPointCloud* ref);
 	// Subsamples from Libpointmatcher
-	static DP filter(DP, const LibpointmatcherDialog& dlg, bool hasNormalDescriptors );
+	static DP filter(DP cloud, std::vector< std::shared_ptr<PM::DataPointsFilter>> filters, std::shared_ptr<PM::DataPointsFilter> normalParams, std::vector<bool> needNormals, bool hasNormalDescriptors );
 
 };
 

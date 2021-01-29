@@ -60,19 +60,34 @@ LibpointmatcherDialog::LibpointmatcherDialog(ccMainAppInterface* app)
 	, Ui::LibpointmatcherDialog()
 	, m_app(app)
 	, m_corePointsCloud(nullptr)
+	, m_normalParams(nullptr)
 {
 	setupUi(this);
 
 
 }
 
+void LibpointmatcherDialog::addToFilterList() {
+	acceptFilterOptions();
+
+};
+//! changeFilterPositionUp
+void LibpointmatcherDialog::changeFilterPositionUp(int filerIndex) {
+};
+//! changeFilterPositionDown
+void LibpointmatcherDialog::changeFiltePositionDown(int filterIndex) {
+};
+//! remove a Filter to the filter List
+void LibpointmatcherDialog::removeFromFilterList(int filterIndex) {
+};
+
 void LibpointmatcherDialog::acceptNormalOptions()
 {
-	std::shared_ptr<PM::DataPointsFilter> normalParams;
+	
 	//SurfaceNormalFilter
-	std::string knnValue = std::to_string(maxDensity->value());
-	std::string epsilonValue = std::to_string(maxDensity->value());
-	normalParams = PM::get().DataPointsFilterRegistrar.create(
+	std::string knnValue = std::to_string(normalsKnn->value());
+	std::string epsilonValue = std::to_string(normalsEpsilon->value());
+	m_normalParams = PM::get().DataPointsFilterRegistrar.create(
 		"SurfaceNormalDataPointsFilter",
 		{
 			{"knn", knnValue},
@@ -92,6 +107,7 @@ void LibpointmatcherDialog::acceptFilterOptions() {
 	int indexFilter = Options->currentIndex();
 	bool useExistingNormals = true;
 	bool needNormals=false;
+	PM::Parameters params;
 
 	std::shared_ptr<PM::DataPointsFilter> filterParams;
 	
@@ -101,14 +117,14 @@ void LibpointmatcherDialog::acceptFilterOptions() {
 	case 0:
 	{
 		//MaximumDensityFilter
-		std::string maxDensityValue = std::to_string(maxDensity->value());
+		std::string maxDensityValue = std::to_string(maxDensity->value()/10000.00);
 		filterParams = PM::get().DataPointsFilterRegistrar.create(
 			"MaxDensityDataPointsFilter",
 			{
 				{"maxDensity", maxDensityValue},
 			}
 		);
-
+		
 		useExistingNormals = false; 
 		needNormals = true;
 		break;
@@ -119,18 +135,19 @@ void LibpointmatcherDialog::acceptFilterOptions() {
 		std::string distValue = std::to_string(distanceThreshold->value());
 
 		std::string dimValue;
-		if (dimRadial->isChecked()) { dimValue = "-1"; }
-		else if (dimX->isChecked()) { dimValue = "0"; }
+		//Radial does not seem to work
+		if (dimX->isChecked()) { dimValue = "0"; }
 		else if (dimY->isChecked()) { dimValue = "1"; }
+		else if (dimRadial->isChecked()) {dimValue = "-1";}
 		else { dimValue = "2"; }
 
-		std::string removeInsideValue = "1";
-		if (keepDimOuside->isChecked()) { removeInsideValue = "0"; }
+		std::string removeInsideValue = "0";
+		if (keepDimOuside->isChecked()) { removeInsideValue = "1"; }
 
 		filterParams = PM::get().DataPointsFilterRegistrar.create(
 			"DistanceLimitDataPointsFilter",
 			{
-				{"dim", dimValue},
+				{"dim",dimValue},
 				{"dist", distValue},
 				{"removeInside",removeInsideValue}
 			}
@@ -138,7 +155,7 @@ void LibpointmatcherDialog::acceptFilterOptions() {
 		break;
 	}
 	case 2:
-	{	ccLog::Print(QString("Im in"));
+	{	
 		//MaximumPointCountFilter
 		std::string seedValue = std::to_string((int)round(srandSeed->value()));
 		std::string maxCountValue = std::to_string((int)round(maxPointCount->value()));
@@ -156,7 +173,7 @@ void LibpointmatcherDialog::acceptFilterOptions() {
 	case 3:
 	{
 		//MaximumQuantileAxisFilter
-		std::string ratioValue = std::to_string(maxPointCount->value());
+		std::string ratioValue = std::to_string(ratioQuantile->value());
 		std::string dimValue;
 		if (dimX_Quantile->isChecked()) { dimValue = "0"; }
 		else if (dimY_Quantile->isChecked()) { dimValue = "1"; }
@@ -218,20 +235,22 @@ void LibpointmatcherDialog::acceptFilterOptions() {
 	case 7:
 	{
 		//OctreeGridFilter
-		std::string maxPointByNodeValue = std::to_string(stopPointOctree->value());
+		std::string maxPointByNodeValue = std::to_string((int)round(stopPointOctree->value()));
 		std::string maxSizeByNodeValue = std::to_string(octreeSize->value());
 		std::string samplingMethodValue;
 		if (octreeSampleFirst->isChecked()) { samplingMethodValue = "0"; }
 		else if (octreeSampleRandom->isChecked()) { samplingMethodValue = "1"; }
 		else if (octreeSampleCentroid->isChecked()) { samplingMethodValue = "2"; }
 		else { samplingMethodValue = "3"; }
+
+		
 		filterParams = PM::get().DataPointsFilterRegistrar.create(
 			"OctreeGridDataPointsFilter",
 			{
-				{"buildParallel", "1"},
-				{"maxPointByNode", maxPointByNodeValue },
-				{"maxSizeByNode", maxSizeByNodeValue},
-				{"samplingMethod", samplingMethodValue}
+				{"maxPointByNode",maxPointByNodeValue},
+				{"maxSizeByNode",maxSizeByNodeValue},
+				{"samplingMethod", samplingMethodValue},
+				{"buildParallel","1"}
 			}
 		);
 
@@ -243,9 +262,9 @@ void LibpointmatcherDialog::acceptFilterOptions() {
 	{
 		//NormalSpaceSamplingFilter
 		const double halfC = M_PI / 180;
-		std::string epsilonValue = std::to_string(epsilonNormal->value());
-		std::string seedValue = std::to_string(srandNormal->value());
-		std::string nbSampleValue = std::to_string(maxPointCountNormal->value()*halfC);
+		std::string epsilonValue = std::to_string(epsilonNormal->value()*halfC);
+		std::string seedValue = std::to_string((int)round(srandNormal->value()));
+		std::string nbSampleValue = std::to_string((int)round(maxPointCountNormal->value()));
 		filterParams = PM::get().DataPointsFilterRegistrar.create(
 			"NormalSpaceDataPointsFilter",
 			{
@@ -263,7 +282,7 @@ void LibpointmatcherDialog::acceptFilterOptions() {
 	{
 		//CovarianceSamplingFilter
 		std::string torqueNormValue;
-		std::string nbSampleValue = std::to_string(maxPointCountNormal->value());
+		std::string nbSampleValue = std::to_string((int)round(maxPointCountNormal->value()));
 		
 		if (torqueNo->isChecked()) { torqueNormValue = "0"; }
 		else if (torqueAvg->isChecked()) { torqueNormValue = "1"; }
@@ -276,17 +295,17 @@ void LibpointmatcherDialog::acceptFilterOptions() {
 				{"torqueNorm", torqueNormValue},
 			}
 		);
-		if (!covNormals->isChecked()) { m_useExistingNormals = false; }
+		if (!covNormals->isChecked()) { useExistingNormals = false; }
 		needNormals = true;
 		break;
 	}
 	case 10:
 	{
 		//SpectralDecompositionFilter
-		std::string kValue = std::to_string(spdfKnn->value());
+		std::string kValue = std::to_string((int)round(spdfKnn->value()));
 		std::string sigmaValue = std::to_string(spdfSigma->value());
 		std::string radiusValue = std::to_string(spdfRadius->value());
-		std::string itMaxValue = std::to_string(spdfIter->value());
+		std::string itMaxValue = std::to_string((int)round(spdfIter->value()));
 
 		filterParams = PM::get().DataPointsFilterRegistrar.create(
 			"SpectralDecompositionDataPointsFilter",

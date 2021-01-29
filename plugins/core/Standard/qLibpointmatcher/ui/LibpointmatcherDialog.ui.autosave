@@ -21,7 +21,7 @@
    <item>
     <widget class="QTabWidget" name="m3c2PMTabWidget">
      <property name="currentIndex">
-      <number>0</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="filterParams">
       <property name="accessibleName">
@@ -121,7 +121,7 @@
        <item>
         <widget class="QStackedWidget" name="Options">
          <property name="currentIndex">
-          <number>1</number>
+          <number>3</number>
          </property>
          <widget class="QWidget" name="MaximumDensityFilter">
           <widget class="QGroupBox" name="groupBox">

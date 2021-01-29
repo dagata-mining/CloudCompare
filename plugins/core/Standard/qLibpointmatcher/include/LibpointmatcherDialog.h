@@ -64,6 +64,8 @@ public:
 	//! Returns vector of parameters
 	std::vector< std::shared_ptr<PM::DataPointsFilter>> getFilters() const { return m_filters; }
 
+	std::shared_ptr<PM::DataPointsFilter> getNormalParams() const {return m_normalParams;}
+
 	//! Returns the minimum number of points to compute stats (confidence mainly)
 	unsigned getMinPointsForStats(unsigned defaultValue = 5) const;
 
@@ -83,10 +85,18 @@ public:
 
 	//! Returns the max number of threads to use
 	int getMaxThreadCount() const;
-	// change the filter options
+	//! change the filter options
 	void acceptFilterOptions();
-	// accept Normals Options
+	//! accept Normals Options
 	void acceptNormalOptions();
+	//! add to filter list
+	void addToFilterList();
+	//! changeFilterPositionUp
+	void changeFilterPositionUp(int filerIndex);
+	//! changeFilterPositionDown
+	void changeFiltePositionDown(int filterIndex);
+	//! remove a Filter to the filter List
+	void removeFromFilterList(int filterIndex); 
 
 
 protected:
@@ -109,6 +119,7 @@ protected: //members
 	std::vector< std::shared_ptr<PM::DataPointsFilter>> m_filters;
 	std::vector<bool> m_needNormals;
 	std::vector<bool> m_useExistingNormals;
+	std::shared_ptr<PM::DataPointsFilter> m_normalParams;
 
 };
 

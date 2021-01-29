@@ -468,24 +468,26 @@ bool LibpointmatcherProcess::Subsample(const LibpointmatcherDialog& dlg, ccHObje
 	{
 		convertedCloud = LibpointmatcherTools::ccToPointMatcher(cloud1);
 		hasNormalDescriptors = false;
+		
 	}
 	// Iterate through the different filters
 	
 	
 	// Filtering with DP format
 	DP filteredCloud;
-	filteredCloud = LibpointmatcherTools::filter(convertedCloud, dlg, hasNormalDescriptors);
+	filteredCloud = LibpointmatcherTools::filter(convertedCloud, dlg.getFilters(), dlg.getNormalParams(),dlg.needNormals(), hasNormalDescriptors);
 	
 	
 	DP* filteredCloudPtr = &filteredCloud;
 	//Transforming the Pointmatcher subsampled to a ref cloud
 	CCCoreLib::ReferenceCloud* subsampled = LibpointmatcherTools::pointmatcherToCC(filteredCloudPtr, cloud1);
+
 	//Applying the ref cloud to a new generated point cloud
 	ccPointCloud* cloud1subsampled = static_cast<ccPointCloud*>(cloud1)->partialClone(subsampled);
 	//don't need those references anymore
 	delete subsampled;
 	subsampled = nullptr;
-	if (cloud1subsampled) 
+	if (cloud1subsampled->size()>0) 
 	{
 		cloud1subsampled->setName(QString("%1.subsample").arg(cloud1->getName()));
 		cloud1subsampled->setVisible(true);

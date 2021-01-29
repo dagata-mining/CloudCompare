@@ -84,6 +84,7 @@ void Libpointmatcher::doAction()
 		//process cancelled by the user
 		return;
 	}
+	dlg.acceptNormalOptions();
 	dlg.acceptFilterOptions();
 
 	QString errorMessage;
@@ -97,8 +98,9 @@ void Libpointmatcher::doAction()
 	}
 	if (m_app)
 	{
-		m_app->refreshAll()
-	};
+		m_app->refreshAll();
+	}
 
 }
+;
 
