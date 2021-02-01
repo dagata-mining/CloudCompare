@@ -19,6 +19,7 @@
 
 //Qt
 #include <QMainWindow>
+#include <QProgressDialog>
 
 //local
 #include "LibpointmatcherTools.h"
@@ -103,16 +104,25 @@ void Libpointmatcher::doAction()
 
 	QString errorMessage;
 	ccPointCloud* outputCloud = nullptr; //only necessary for the command line version in fact
-	
+	QProgressDialog pDlg("Please wait...", "Cancel", 0, 0);
+	pDlg.setWindowTitle("Libpointmatcher");
+	pDlg.show();
 	for (int i = 0; i < m_selectedEntities.size(); i++) {
-		if (!LibpointmatcherProcess::Subsample(dlg,m_selectedEntities[i], errorMessage, m_app->getMainWindow(), m_app))
+		if (!pDlg.wasCanceled()) {
+			if (!LibpointmatcherProcess::Subsample(dlg, m_selectedEntities[i], errorMessage, m_app->getMainWindow(), m_app))
+			{
+				m_app->dispToConsole(errorMessage, ccMainAppInterface::ERR_CONSOLE_MESSAGE);
+			}
+		}
+		else 
 		{
-			m_app->dispToConsole(errorMessage, ccMainAppInterface::ERR_CONSOLE_MESSAGE);
+			break;
 		}
 	}
 	if (m_app)
 	{
 		m_app->refreshAll();
+		pDlg.reset();
 	}
 
 }

@@ -438,7 +438,7 @@ void ComputeM3C2DistForPoint(unsigned index)
 bool LibpointmatcherProcess::Subsample(const LibpointmatcherDialog& dlg, ccHObject* entity, QString& errorMessage, QWidget* parentWidget/*=nullptr*/, ccMainAppInterface* app/*=nullptr*/)
 {
 	errorMessage.clear();
-
+	
 	//get the clouds in the right order
 
 
@@ -476,8 +476,11 @@ bool LibpointmatcherProcess::Subsample(const LibpointmatcherDialog& dlg, ccHObje
 	// Filtering with DP format
 	DP filteredCloud;
 	filteredCloud = LibpointmatcherTools::filter(convertedCloud, dlg.getFilters(), dlg.getNormalParams(),dlg.needNormals(), hasNormalDescriptors);
-	
-	
+	if (!filteredCloud.getNbPoints()>0)
+	{
+		errorMessage = "Failed to compute!";
+		return true;
+	}
 	DP* filteredCloudPtr = &filteredCloud;
 	//Transforming the Pointmatcher subsampled to a ref cloud
 	CCCoreLib::ReferenceCloud* subsampled = LibpointmatcherTools::pointmatcherToCC(filteredCloudPtr, cloud1);

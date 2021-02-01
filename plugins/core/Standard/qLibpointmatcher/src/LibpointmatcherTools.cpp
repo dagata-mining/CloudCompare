@@ -957,20 +957,32 @@ DP  LibpointmatcherTools::filter(DP cloud, std::vector< std::shared_ptr<PM::Data
 	list.init();
 	
 	for (int i = 0; i < filters.size(); i++) {
-			
+		ccLog::Print("should not be here");
 		if (needNormals[i] && !hasNormalDescriptors)
 		{
 			//Enable Surface Creating 
 			list.push_back(normalParams);
 			// Prevent from redoing the surface creating normals on the next iteration
 			hasNormalsDescriptorsIter = true;
-			ccLog::Print("should not be here");
+			
 		}
 		list.push_back(filters[i]);
 
 		
 	}
-	list.apply(cloud);
+	try
+	{
+		list.apply(cloud); //cause an exception 
+	}
+
+	catch (std::string e)
+	{
+		ccLog::Print("catch");
+		DP cloudEmpty;
+		ccLog::Error(e.c_str());
+		return cloudEmpty;
+	}
+	
 	ccLog::Print(QString::number(filters.size()));
 
 	return cloud;

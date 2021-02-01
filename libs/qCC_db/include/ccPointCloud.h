@@ -734,7 +734,11 @@ public: //other methods
 	//! Exports the specified normal dimension(s) to scalar field(s)
 	bool exportNormalToSF(bool exportDims[3]);
 
-	
+	//! Release VBOs
+	void releaseVBOs();
+
+	//! Returns the VBOs size (if any)
+	size_t vboSize() const;
 
 protected:
 
@@ -777,8 +781,6 @@ protected: // VBO
 	//! Init/updates VBOs
 	bool updateVBOs(const CC_DRAW_CONTEXT& context, const glDrawParams& glParams);
 
-	//! Release VBOs
-	void releaseVBOs();
 
 	class VBO : public QGLBuffer
 	{
