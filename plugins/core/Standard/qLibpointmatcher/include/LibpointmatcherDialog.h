@@ -66,8 +66,6 @@ public:
 
 	std::shared_ptr<PM::DataPointsFilter> getNormalParams() const {return m_normalParams;}
 
-	//! Returns the minimum number of points to compute stats (confidence mainly)
-	unsigned getMinPointsForStats(unsigned defaultValue = 5) const;
 
 	//! Exportation options
 	enum ExportOptions {	PROJECT_ON_CLOUD1,
@@ -83,27 +81,31 @@ public:
 	**/
 	bool keepOriginalCloud() const;
 
-	//! Returns the max number of threads to use
-	int getMaxThreadCount() const;
+
 	//! change the filter options
 	void acceptFilterOptions();
+	//! changing the selected item on the filters list disabling and enabling position change and deleting filter
+	void selectingFilterItem();
 	//! accept Normals Options
 	void acceptNormalOptions();
 	//! add to filter list
 	void addToFilterList();
 	//! changeFilterPositionUp
-	void changeFilterPositionUp(int filerIndex);
+	void changeFilterPositionUp();
 	//! changeFilterPositionDown
-	void changeFiltePositionDown(int filterIndex);
+	void changeFilterPositionDown();
 	//! remove a Filter to the filter List
-	void removeFromFilterList(int filterIndex); 
-
+	void removeFromFilterList();
+	//! disable list filter buttons;
+	void disableFilterListButtons();
+	//! return current filter tab widget
+	int getCurrentFilterTabWidget();
 
 protected:
 
 	void setCloud1Visibility(bool);
 	void setCloud2Visibility(bool);
-	void projDestIndexChanged(int);
+
 
 	
 
@@ -120,6 +122,8 @@ protected: //members
 	std::vector<bool> m_needNormals;
 	std::vector<bool> m_useExistingNormals;
 	std::shared_ptr<PM::DataPointsFilter> m_normalParams;
+	QString m_currentFilterName;
+	int m_filterItem;
 
 };
 

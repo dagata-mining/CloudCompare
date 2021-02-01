@@ -11,15 +11,15 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>M3C2 distance</string>
+   <string>Libpointmatcher</string>
   </property>
   <property name="windowIcon">
    <iconset resource="../qLibpointmatcher.qrc">
-    <normaloff>:/CC/plugin/qLibpointmatcher/images/iconM3C2.png</normaloff>:/CC/plugin/qLibpointmatcher/images/iconM3C2.png</iconset>
+    <normaloff>:/CC/plugin/qLibpointmatcher/images/iconLibpointmatcher.png</normaloff>:/CC/plugin/qLibpointmatcher/images/iconLibpointmatcher.png</iconset>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_7">
    <item>
-    <widget class="QTabWidget" name="m3c2PMTabWidget">
+    <widget class="QTabWidget" name="filterTabWidget">
      <property name="currentIndex">
       <number>0</number>
      </property>
@@ -40,7 +40,7 @@
           <item row="0" column="2">
            <widget class="QComboBox" name="filterType">
             <property name="currentIndex">
-             <number>0</number>
+             <number>1</number>
             </property>
             <item>
              <property name="text">
@@ -121,7 +121,7 @@
        <item>
         <widget class="QStackedWidget" name="Options">
          <property name="currentIndex">
-          <number>1</number>
+          <number>0</number>
          </property>
          <widget class="QWidget" name="MaximumDensityFilter">
           <widget class="QGroupBox" name="groupBox">
@@ -1757,422 +1757,114 @@
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="advanced">
+     <widget class="QWidget" name="filters">
       <attribute name="title">
-       <string>Advanced</string>
+       <string>Filters</string>
       </attribute>
-      <layout class="QVBoxLayout" name="verticalLayout_5">
-       <item>
-        <widget class="QCheckBox" name="useSinglePass4DepthCheckBox">
-         <property name="toolTip">
-          <string>Slower but it guarantees that all the cylinder will be explored</string>
-         </property>
-         <property name="text">
-          <string>Do not use multiple pass for depth</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QCheckBox" name="positiveSearchOnlyCheckBox">
-         <property name="toolTip">
-          <string>Search the points only in the 'positive' side of the cylinder (relatively to the point normal)</string>
-         </property>
-         <property name="text">
-          <string>Only search points in the positive half-space (relatively to the normal)</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QCheckBox" name="useMedianCheckBox">
-         <property name="text">
-          <string>Use median and interquatile range (instead of mean and std. dev.)</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QFrame" name="minPoints4StatsFrame">
-         <layout class="QHBoxLayout" name="horizontalLayout_5">
-          <property name="leftMargin">
-           <number>0</number>
-          </property>
-          <property name="topMargin">
-           <number>0</number>
-          </property>
-          <property name="rightMargin">
-           <number>0</number>
-          </property>
-          <property name="bottomMargin">
-           <number>0</number>
-          </property>
-          <item>
-           <widget class="QCheckBox" name="useMinPoints4StatCheckBox">
-            <property name="text">
-             <string>Specify minimum number of points for statistics computation</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QSpinBox" name="minPoints4StatSpinBox">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="minimum">
-             <number>1</number>
-            </property>
-            <property name="maximum">
-             <number>1000000000</number>
-            </property>
-            <property name="value">
-             <number>5</number>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <spacer name="horizontalSpacer_5">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>40</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item>
-        <widget class="QFrame" name="frame">
-         <property name="frameShape">
-          <enum>QFrame::StyledPanel</enum>
-         </property>
-         <property name="frameShadow">
-          <enum>QFrame::Raised</enum>
-         </property>
-         <layout class="QHBoxLayout" name="horizontalLayout_8">
-          <property name="leftMargin">
-           <number>0</number>
-          </property>
-          <property name="topMargin">
-           <number>0</number>
-          </property>
-          <property name="rightMargin">
-           <number>0</number>
-          </property>
-          <property name="bottomMargin">
-           <number>0</number>
-          </property>
-          <item>
-           <widget class="QLabel" name="label_3">
-            <property name="text">
-             <string>Max thread count</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QSpinBox" name="maxThreadCountSpinBox">
-            <property name="suffix">
-             <string notr="true"> / 8</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <spacer name="horizontalSpacer">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>40</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item>
-        <spacer name="verticalSpacer_2">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>177</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-      </layout>
-     </widget>
-     <widget class="QWidget" name="tab">
-      <attribute name="title">
-       <string>Precision maps</string>
-      </attribute>
-      <layout class="QVBoxLayout" name="verticalLayout_8">
-       <item>
-        <widget class="QTextBrowser" name="m3c2PMTextBrowser">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="html">
-          <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
-&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
-p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p align=&quot;center&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:10pt; font-weight:600;&quot;&gt;3D uncertainty-based topographic change detection with SfM photogrammetry: precision maps for ground control and directly georeferenced surveys&lt;/span&gt;&lt;/p&gt;
-&lt;p align=&quot;center&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;Mike R. James, Stuart Robson and Mark W. Smith (&lt;/span&gt;&lt;a href=&quot;http://onlinelibrary.wiley.com/doi/10.1002/esp.4125/abstract&quot;&gt;&lt;span style=&quot; font-size:8pt; text-decoration: underline; color:#0000ff;&quot;&gt;DOI: 10.1002/esp.4125&lt;/span&gt;&lt;/a&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;)&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-         </property>
-         <property name="openExternalLinks">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QGroupBox" name="precisionMapsGroupBox">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="title">
-          <string>Use precision information in scalar fields instead of roughness-based uncertainty estimates</string>
-         </property>
-         <property name="checkable">
-          <bool>true</bool>
-         </property>
-         <property name="checked">
-          <bool>false</bool>
-         </property>
-         <layout class="QGridLayout" name="gridLayout_2" columnstretch="1,2,2">
-          <item row="0" column="2">
-           <widget class="QLabel" name="label_6">
-            <property name="text">
-             <string>Cloud #2</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignCenter</set>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="1">
-           <widget class="QLabel" name="label_4">
-            <property name="text">
-             <string>Cloud #1</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignCenter</set>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="0">
-           <widget class="QLabel" name="label_8">
-            <property name="text">
-             <string>Sigma(y)</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="2">
-           <widget class="QComboBox" name="c2SxComboBox"/>
-          </item>
-          <item row="2" column="1">
-           <widget class="QComboBox" name="c1SyComboBox"/>
-          </item>
-          <item row="1" column="1">
-           <widget class="QComboBox" name="c1SxComboBox"/>
-          </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="label_7">
-            <property name="text">
-             <string>Sigma(x)</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="2">
-           <widget class="QComboBox" name="c2SyComboBox"/>
-          </item>
-          <item row="3" column="1">
-           <widget class="QComboBox" name="c1SzComboBox"/>
-          </item>
-          <item row="3" column="0">
-           <widget class="QLabel" name="label_9">
-            <property name="text">
-             <string>Sigma(z)</string>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="2">
-           <widget class="QComboBox" name="c2SzComboBox"/>
-          </item>
-          <item row="4" column="0">
-           <widget class="QLabel" name="label_10">
-            <property name="text">
-             <string>Scale</string>
-            </property>
-           </widget>
-          </item>
-          <item row="4" column="1">
-           <widget class="QDoubleSpinBox" name="pm1ScaleDoubleSpinBox">
-            <property name="toolTip">
-             <string>From SF units to cloud units</string>
-            </property>
-            <property name="decimals">
-             <number>6</number>
-            </property>
-            <property name="minimum">
-             <double>0.000001000000000</double>
-            </property>
-            <property name="maximum">
-             <double>1000000.000000000000000</double>
-            </property>
-            <property name="value">
-             <double>1.000000000000000</double>
-            </property>
-           </widget>
-          </item>
-          <item row="4" column="2">
-           <widget class="QDoubleSpinBox" name="pm2ScaleDoubleSpinBox">
-            <property name="toolTip">
-             <string>From SF units to cloud units</string>
-            </property>
-            <property name="decimals">
-             <number>6</number>
-            </property>
-            <property name="minimum">
-             <double>0.000001000000000</double>
-            </property>
-            <property name="maximum">
-             <double>1000000.000000000000000</double>
-            </property>
-            <property name="value">
-             <double>1.000000000000000</double>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
-      </layout>
-     </widget>
-     <widget class="QWidget" name="output">
-      <attribute name="title">
-       <string>Output</string>
-      </attribute>
-      <layout class="QVBoxLayout" name="verticalLayout_6">
-       <item>
-        <layout class="QHBoxLayout" name="horizontalLayout_6">
-         <item>
-          <widget class="QLabel" name="label_5">
-           <property name="text">
-            <string>Project core points on</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QComboBox" name="projDestComboBox">
-           <property name="currentIndex">
-            <number>1</number>
-           </property>
-           <property name="maxVisibleItems">
-            <number>3</number>
-           </property>
-           <property name="maxCount">
-            <number>3</number>
-           </property>
-           <item>
-            <property name="text">
-             <string>Cloud #1</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>Cloud #2</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>Keep original positions</string>
-            </property>
-           </item>
-          </widget>
-         </item>
-         <item>
-          <widget class="QCheckBox" name="useOriginalCloudCheckBox">
-           <property name="text">
-            <string>use original cloud</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <spacer name="horizontalSpacer_3">
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>40</width>
-             <height>20</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
-        </layout>
-       </item>
-       <item>
-        <widget class="QCheckBox" name="exportStdDevInfoCheckBox">
-         <property name="toolTip">
-          <string>Adds two scalar fields (std_cloud#1 and std_cloud#2)</string>
-         </property>
-         <property name="text">
-          <string>Export standard deviation information</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QCheckBox" name="exportDensityAtProjScaleCheckBox">
-         <property name="toolTip">
-          <string>Adds one scalar field (point count per core point)</string>
-         </property>
-         <property name="text">
-          <string>Export point density at projection scale</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <spacer name="verticalSpacer_3">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>177</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-      </layout>
+      <widget class="QListWidget" name="listFilters">
+       <property name="geometry">
+        <rect>
+         <x>9</x>
+         <y>9</y>
+         <width>371</width>
+         <height>192</height>
+        </rect>
+       </property>
+      </widget>
+      <widget class="QFrame" name="frame">
+       <property name="geometry">
+        <rect>
+         <x>9</x>
+         <y>356</y>
+         <width>16</width>
+         <height>16</height>
+        </rect>
+       </property>
+       <property name="frameShape">
+        <enum>QFrame::StyledPanel</enum>
+       </property>
+       <property name="frameShadow">
+        <enum>QFrame::Raised</enum>
+       </property>
+       <layout class="QHBoxLayout" name="horizontalLayout_8">
+        <property name="leftMargin">
+         <number>0</number>
+        </property>
+        <property name="topMargin">
+         <number>0</number>
+        </property>
+        <property name="rightMargin">
+         <number>0</number>
+        </property>
+        <property name="bottomMargin">
+         <number>0</number>
+        </property>
+       </layout>
+      </widget>
+      <widget class="QToolButton" name="switchDownFilter">
+       <property name="geometry">
+        <rect>
+         <x>390</x>
+         <y>30</y>
+         <width>25</width>
+         <height>19</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>...</string>
+       </property>
+       <property name="icon">
+        <iconset resource="../qLibpointmatcher.qrc">
+         <normaloff>:/CC/plugin/qLibpointmatcher/images/down-chevron.png</normaloff>:/CC/plugin/qLibpointmatcher/images/down-chevron.png</iconset>
+       </property>
+      </widget>
+      <widget class="QToolButton" name="deleteOneFilter">
+       <property name="geometry">
+        <rect>
+         <x>390</x>
+         <y>180</y>
+         <width>25</width>
+         <height>19</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>...</string>
+       </property>
+       <property name="icon">
+        <iconset resource="../qLibpointmatcher.qrc">
+         <normaloff>:/CC/plugin/qLibpointmatcher/images/smallCancel.png</normaloff>:/CC/plugin/qLibpointmatcher/images/smallCancel.png</iconset>
+       </property>
+      </widget>
+      <widget class="QToolButton" name="switchUpFilter">
+       <property name="geometry">
+        <rect>
+         <x>390</x>
+         <y>10</y>
+         <width>25</width>
+         <height>19</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>...</string>
+       </property>
+       <property name="icon">
+        <iconset resource="../qLibpointmatcher.qrc">
+         <normaloff>:/CC/plugin/qLibpointmatcher/images/up-chevron.png</normaloff>:/CC/plugin/qLibpointmatcher/images/up-chevron.png</iconset>
+       </property>
+      </widget>
      </widget>
     </widget>
    </item>
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_7">
      <item>
-      <widget class="QToolButton" name="loadParamsToolButton">
+      <widget class="QToolButton" name="addFilterButton">
        <property name="toolTip">
         <string>Load parameters from file</string>
        </property>
        <property name="icon">
-        <iconset>
-         <normaloff>:/CC/plugin/qqLibpointmatcher/images/iconLoad.png</normaloff>:/CC/plugin/qqLibpointmatcher/images/iconLoad.png</iconset>
+        <iconset resource="../qLibpointmatcher.qrc">
+         <normaloff>:/CC/plugin/qLibpointmatcher/images/ccPlus.png</normaloff>:/CC/plugin/qLibpointmatcher/images/ccPlus.png</iconset>
        </property>
       </widget>
      </item>
@@ -2191,15 +1883,8 @@ p, li { white-space: pre-wrap; }
   </layout>
  </widget>
  <tabstops>
-  <tabstop>m3c2PMTabWidget</tabstop>
-  <tabstop>useSinglePass4DepthCheckBox</tabstop>
-  <tabstop>useMedianCheckBox</tabstop>
-  <tabstop>useMinPoints4StatCheckBox</tabstop>
-  <tabstop>minPoints4StatSpinBox</tabstop>
-  <tabstop>projDestComboBox</tabstop>
-  <tabstop>exportStdDevInfoCheckBox</tabstop>
-  <tabstop>exportDensityAtProjScaleCheckBox</tabstop>
-  <tabstop>loadParamsToolButton</tabstop>
+  <tabstop>filterTabWidget</tabstop>
+  <tabstop>addFilterButton</tabstop>
   <tabstop>buttonBox</tabstop>
  </tabstops>
  <resources>
@@ -2270,45 +1955,13 @@ p, li { white-space: pre-wrap; }
     </hint>
    </hints>
   </connection>
-  <connection>
-   <sender>precisionMapsGroupBox</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>useMedianCheckBox</receiver>
-   <slot>setDisabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>282</x>
-     <y>248</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>282</x>
-     <y>150</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>precisionMapsGroupBox</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>minPoints4StatsFrame</receiver>
-   <slot>setDisabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>282</x>
-     <y>248</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>282</x>
-     <y>174</y>
-    </hint>
-   </hints>
-  </connection>
  </connections>
  <buttongroups>
   <buttongroup name="buttonGroup_3"/>
-  <buttongroup name="buttonGroup_4"/>
-  <buttongroup name="buttonGroup_5"/>
-  <buttongroup name="buttonGroup_2"/>
   <buttongroup name="buttonGroup_6"/>
+  <buttongroup name="buttonGroup_5"/>
   <buttongroup name="buttonGroup"/>
+  <buttongroup name="buttonGroup_4"/>
+  <buttongroup name="buttonGroup_2"/>
  </buttongroups>
 </ui>

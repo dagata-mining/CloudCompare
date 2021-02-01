@@ -1,10 +1,14 @@
 <RCC>
   <qresource prefix="/CC/plugin/qLibpointmatcher">
-    <file>images/Logo_cnrs_eub_eec.png</file>
-    <file>images/iconM3C2.png</file>
+    <file>images/libpointmatcher.png</file>
+    <file>images/iconLibpointmatcher.png</file>
     <file>images/iconSwap.png</file>
     <file>images/iconLoad.png</file>
     <file>images/iconSave.png</file>
+    <file>images/smallCancel.png</file>
+    <file>images/up-chevron.png</file>
+    <file>images/down-chevron.png</file>
+    <file>images/ccPlus.png</file>
     <file>info.json</file>
   </qresource>
 </RCC>

@@ -61,31 +61,125 @@ LibpointmatcherDialog::LibpointmatcherDialog(ccMainAppInterface* app)
 	, m_app(app)
 	, m_corePointsCloud(nullptr)
 	, m_normalParams(nullptr)
+	, m_currentFilterName("")
+	, m_filterItem(0)
 {
+
 	setupUi(this);
+	connect(addFilterButton, &QAbstractButton::clicked, this, &LibpointmatcherDialog::addToFilterList);
+	connect(listFilters, &QListWidget::currentItemChanged, this, &LibpointmatcherDialog::selectingFilterItem);
+	connect(listFilters, &QListWidget::itemClicked, this, &LibpointmatcherDialog::selectingFilterItem);
+	connect(switchDownFilter, &QToolButton::clicked, this, &LibpointmatcherDialog::changeFilterPositionDown);
+	connect(switchUpFilter, &QToolButton::clicked, this, &LibpointmatcherDialog::changeFilterPositionUp);
+	connect(deleteOneFilter, &QToolButton::clicked, this, &LibpointmatcherDialog::removeFromFilterList);
 
+	// Set up on initialization 
+	listFilters->setCurrentRow(0);
+	selectingFilterItem();
+}
 
+void LibpointmatcherDialog::disableFilterListButtons()
+{
+
+	switchDownFilter->setEnabled(false);
+	switchUpFilter->setEnabled(false);
+	deleteOneFilter->setEnabled(false);
 }
 
 void LibpointmatcherDialog::addToFilterList() {
+	if (filterTabWidget->currentIndex() != 0)
+	{
+		return;
+	};
+
 	acceptFilterOptions();
+	listFilters->addItem(m_currentFilterName);
+
 
 };
-//! changeFilterPositionUp
-void LibpointmatcherDialog::changeFilterPositionUp(int filerIndex) {
+
+void LibpointmatcherDialog::selectingFilterItem()
+{
+	m_filterItem = listFilters->currentRow();
+	switchDownFilter->setEnabled(true);
+	switchUpFilter->setEnabled(true);
+	if (m_filterItem == 0)
+	{
+		switchUpFilter->setEnabled(false);
+	}
+	if (m_filterItem+1 == m_filters.size())
+	{
+		switchDownFilter->setEnabled(false);
+	}
+	deleteOneFilter->setEnabled(true);
+
+}
+
+void LibpointmatcherDialog::changeFilterPositionUp()
+{
+
+	if (m_filterItem == 0) {
+		return;
+	}
+	std::iter_swap(m_filters.begin() + m_filterItem, m_filters.begin() + m_filterItem - 1);
+	std::iter_swap(m_needNormals.begin() + m_filterItem, m_needNormals.begin() + m_filterItem - 1);
+	std::iter_swap(m_useExistingNormals.begin() + m_filterItem, m_useExistingNormals.begin() + m_filterItem - 1);
+
+	QListWidgetItem* currentItem = listFilters->takeItem(m_filterItem-1);
+	listFilters->insertItem(m_filterItem, currentItem);
+
+
+	selectingFilterItem();
 };
-//! changeFilterPositionDown
-void LibpointmatcherDialog::changeFiltePositionDown(int filterIndex) {
+
+void LibpointmatcherDialog::changeFilterPositionDown()
+{
+
+	if (m_filterItem + 1 == m_filters.size()) {
+		return;
+	}
+	std::iter_swap(m_filters.begin() + m_filterItem, m_filters.begin() + m_filterItem + 1);
+	std::iter_swap(m_needNormals.begin() + m_filterItem, m_needNormals.begin() + m_filterItem + 1);
+	std::iter_swap(m_useExistingNormals.begin() + m_filterItem, m_useExistingNormals.begin() + m_filterItem + 1);
+
+	QListWidgetItem* currentItem = listFilters->takeItem(m_filterItem+1);
+	listFilters->insertItem(m_filterItem, currentItem);
+
+
+	selectingFilterItem();
+
 };
-//! remove a Filter to the filter List
-void LibpointmatcherDialog::removeFromFilterList(int filterIndex) {
+
+void LibpointmatcherDialog::removeFromFilterList() {
+
+	if (m_filters.size() == 0) {
+		return;
+	}
+	m_filters.erase(m_filters.begin() + m_filterItem);
+	m_needNormals.erase(m_needNormals.begin() + m_filterItem);
+	m_useExistingNormals.erase(m_useExistingNormals.begin() + m_filterItem);
+
+	qDeleteAll(listFilters->selectedItems());
+	listFilters->setCurrentRow(0);
+
+	if (m_filters.size() == 0)
+	{
+		disableFilterListButtons();
+		
+	}
+	else 
+	{
+		selectingFilterItem();
+	}
+
+
 };
 
 void LibpointmatcherDialog::acceptNormalOptions()
 {
-	
+
 	//SurfaceNormalFilter
-	std::string knnValue = std::to_string(normalsKnn->value());
+	std::string knnValue = std::to_string((int)round(normalsKnn->value()));
 	std::string epsilonValue = std::to_string(normalsEpsilon->value());
 	m_normalParams = PM::get().DataPointsFilterRegistrar.create(
 		"SurfaceNormalDataPointsFilter",
@@ -106,27 +200,30 @@ void LibpointmatcherDialog::acceptNormalOptions()
 void LibpointmatcherDialog::acceptFilterOptions() {
 	int indexFilter = Options->currentIndex();
 	bool useExistingNormals = true;
-	bool needNormals=false;
+	bool needNormals = false;
 	PM::Parameters params;
 
+	std::string filterName;
 	std::shared_ptr<PM::DataPointsFilter> filterParams;
-	
+
 	switch (indexFilter) {
-	
+
 
 	case 0:
 	{
 		//MaximumDensityFilter
-		std::string maxDensityValue = std::to_string(maxDensity->value()/10000.00);
+		std::string maxDensityValue = std::to_string(maxDensity->value() / 10000.00);
 		filterParams = PM::get().DataPointsFilterRegistrar.create(
 			"MaxDensityDataPointsFilter",
 			{
 				{"maxDensity", maxDensityValue},
 			}
 		);
-		
-		useExistingNormals = false; 
+
+		useExistingNormals = false;
 		needNormals = true;
+		filterName = "MaxDensity: " + maxDensityValue + " MaxDensityDataPointsFilter";
+		m_currentFilterName = QString(filterName.c_str());
 		break;
 	}
 	case 1:
@@ -138,7 +235,7 @@ void LibpointmatcherDialog::acceptFilterOptions() {
 		//Radial does not seem to work
 		if (dimX->isChecked()) { dimValue = "0"; }
 		else if (dimY->isChecked()) { dimValue = "1"; }
-		else if (dimRadial->isChecked()) {dimValue = "-1";}
+		else if (dimRadial->isChecked()) { dimValue = "-1"; }
 		else { dimValue = "2"; }
 
 		std::string removeInsideValue = "0";
@@ -152,14 +249,16 @@ void LibpointmatcherDialog::acceptFilterOptions() {
 				{"removeInside",removeInsideValue}
 			}
 		);
+		filterName = "MaxDistance: " + distValue + " DistanceLimitDataPointsFilter";
+		m_currentFilterName = QString(filterName.c_str());
 		break;
+
 	}
 	case 2:
-	{	
+	{
 		//MaximumPointCountFilter
 		std::string seedValue = std::to_string((int)round(srandSeed->value()));
 		std::string maxCountValue = std::to_string((int)round(maxPointCount->value()));
-		ccLog::Print(QString::fromStdString(maxCountValue));
 		filterParams = PM::get().DataPointsFilterRegistrar.create(
 			"MaxPointCountDataPointsFilter",
 			{
@@ -167,7 +266,8 @@ void LibpointmatcherDialog::acceptFilterOptions() {
 				{"maxCount", maxCountValue},
 			}
 		);
-		
+		filterName = "MaxPointCount: " + maxCountValue + " MaxPointCountDataPointsFilter";
+		m_currentFilterName = QString(filterName.c_str());
 		break;
 	}
 	case 3:
@@ -186,7 +286,8 @@ void LibpointmatcherDialog::acceptFilterOptions() {
 				{"ratio", ratioValue},
 			}
 		);
-
+		filterName = "QuantileRatio: " + ratioValue + " MaxQuantileOnAxisDataPointsFilter";
+		m_currentFilterName = QString(filterName.c_str());
 		break;
 	}
 	case 4:
@@ -200,6 +301,8 @@ void LibpointmatcherDialog::acceptFilterOptions() {
 
 			}
 		);
+		filterName = "Probability: " + probValue + " RandomSamplingDataPointsFilter";
+		m_currentFilterName = QString(filterName.c_str());
 		break;
 	}
 	case 5:
@@ -210,6 +313,8 @@ void LibpointmatcherDialog::acceptFilterOptions() {
 		);
 		if (!shadowNormals->isChecked()) { useExistingNormals = false; }
 		needNormals = true;
+		filterName = "ShadowDataPointsFilter";
+		m_currentFilterName = QString(filterName.c_str());
 		break;
 	}
 	case 6:
@@ -230,6 +335,8 @@ void LibpointmatcherDialog::acceptFilterOptions() {
 				{"averageExistingDescriptors","0"}
 			}
 		);
+		filterName = "Voxels x: " + vSizeXValue + " y: " + vSizeYValue + " z: " + vSizeZValue + " VoxelGridDataPointsFilter";
+		m_currentFilterName = QString(filterName.c_str());
 		break;
 	}
 	case 7:
@@ -243,7 +350,7 @@ void LibpointmatcherDialog::acceptFilterOptions() {
 		else if (octreeSampleCentroid->isChecked()) { samplingMethodValue = "2"; }
 		else { samplingMethodValue = "3"; }
 
-		
+
 		filterParams = PM::get().DataPointsFilterRegistrar.create(
 			"OctreeGridDataPointsFilter",
 			{
@@ -254,7 +361,8 @@ void LibpointmatcherDialog::acceptFilterOptions() {
 			}
 		);
 
-
+		filterName = "MaxPointByNode: " + maxPointByNodeValue + " maxSizeByNode: " + maxSizeByNodeValue + " OctreeGridDataPointsFilter";
+		m_currentFilterName = QString(filterName.c_str());
 
 		break;
 	}
@@ -276,18 +384,21 @@ void LibpointmatcherDialog::acceptFilterOptions() {
 
 		if (!normalNormals_2->isChecked()) { useExistingNormals = false; }
 		needNormals = true;
+
+		filterName = "Sample Number: " + nbSampleValue + " NormalSpaceDataPointsFilter";
+		m_currentFilterName = QString(filterName.c_str());
 		break;
 	}
 	case 9:
 	{
 		//CovarianceSamplingFilter
 		std::string torqueNormValue;
-		std::string nbSampleValue = std::to_string((int)round(maxPointCountNormal->value()));
-		
+		std::string nbSampleValue = std::to_string((int)round(maxPointCountCov->value()));
+
 		if (torqueNo->isChecked()) { torqueNormValue = "0"; }
 		else if (torqueAvg->isChecked()) { torqueNormValue = "1"; }
-		else {torqueNormValue = "2";}
-		
+		else { torqueNormValue = "2"; }
+
 		filterParams = PM::get().DataPointsFilterRegistrar.create(
 			"CovarianceSamplingDataPointsFilter",
 			{
@@ -297,6 +408,8 @@ void LibpointmatcherDialog::acceptFilterOptions() {
 		);
 		if (!covNormals->isChecked()) { useExistingNormals = false; }
 		needNormals = true;
+		filterName = "Sample Number: " + nbSampleValue + " CovarianceSamplingDataPointsFilter";
+		m_currentFilterName = QString(filterName.c_str());
 		break;
 	}
 	case 10:
@@ -323,6 +436,8 @@ void LibpointmatcherDialog::acceptFilterOptions() {
 
 		if (!spdfNormals->isChecked()) { useExistingNormals = false; }
 		needNormals = true;
+		filterName = "Knn: " + kValue + " SpectralDecompositionDataPointsFilter";
+		m_currentFilterName = QString(filterName.c_str());
 		break;
 	}
 	}
@@ -332,7 +447,10 @@ void LibpointmatcherDialog::acceptFilterOptions() {
 	m_useExistingNormals.push_back(useExistingNormals);
 }
 
-
+int LibpointmatcherDialog::getCurrentFilterTabWidget()
+{
+	return filterTabWidget->currentIndex();
+}
 
 void LibpointmatcherDialog::setCloud1Visibility(bool state)
 {
@@ -363,42 +481,6 @@ void LibpointmatcherDialog::setCloud2Visibility(bool state)
 }
 
 
-LibpointmatcherDialog::ExportOptions LibpointmatcherDialog::getExportOption() const
-{
-	switch (projDestComboBox->currentIndex())
-	{
-	case 0:
-		return PROJECT_ON_CLOUD1;
-	case 1:
-		return PROJECT_ON_CLOUD2;
-	case 2:
-		return PROJECT_ON_CORE_POINTS;
-	default:
-		assert(false);
-		break;
-	}
 
-	return PROJECT_ON_CORE_POINTS;
-}
-
-void LibpointmatcherDialog::projDestIndexChanged(int index)
-{
-	useOriginalCloudCheckBox->setEnabled(getExportOption() == PROJECT_ON_CORE_POINTS);
-}
-
-bool LibpointmatcherDialog::keepOriginalCloud() const
-{
-	return useOriginalCloudCheckBox->isEnabled() && useOriginalCloudCheckBox->isChecked();
-}
-
-int LibpointmatcherDialog::getMaxThreadCount() const
-{
-	return maxThreadCountSpinBox->value();
-}
-
-unsigned LibpointmatcherDialog::getMinPointsForStats(unsigned defaultValue/*=5*/) const
-{
-	return useMinPoints4StatCheckBox->isChecked() ? static_cast<unsigned>(std::max(0,minPoints4StatSpinBox->value())) : defaultValue;
-}
 
 

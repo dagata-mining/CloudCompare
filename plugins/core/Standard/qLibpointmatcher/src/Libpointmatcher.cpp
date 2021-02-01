@@ -84,8 +84,22 @@ void Libpointmatcher::doAction()
 		//process cancelled by the user
 		return;
 	}
-	dlg.acceptNormalOptions();
-	dlg.acceptFilterOptions();
+	// verify on which widget you are
+	if (dlg.getCurrentFilterTabWidget() == 0 && dlg.getFilters().size()==0)
+	{
+		
+		dlg.acceptNormalOptions();
+		dlg.acceptFilterOptions();
+		
+	}
+	if (dlg.getCurrentFilterTabWidget() == 1 && dlg.getFilters().size() == 0)
+	{
+		return;
+	}
+	if (dlg.getCurrentFilterTabWidget() == 2 && dlg.getFilters().size() == 0)
+	{
+		return;
+	}
 
 	QString errorMessage;
 	ccPointCloud* outputCloud = nullptr; //only necessary for the command line version in fact

@@ -2,24 +2,25 @@
 	"type" : "Standard",
 	"core" : true,
 	"name" : "Libpointmatcher",
-	"icon" : ":/CC/plugin/qLibpointmatcher/images/iconM3C2.png",
-	"description": "Multiscale Model to Model Cloud Comparison (M3C2).",
+	"icon" : ":/CC/plugin/qLibpointmatcher/images/iconLibpointmatcher.png",
+	"description": "Libpoint matcher for subsampling and ICP",
 	"authors" : [
     {
-      "name": "Dimitri Lague (OSUR/CNRS)"
+      "name": "Integrator: Alexandre Grenier (Dagata-mining)"
     }
 	],
 	"references" : [
-    {
-      "text": "Dimitri Lague, Geosciences Rennes",
-      "url": "https://geosciences.univ-rennes1.fr/interlocuteurs/dimitri-lague"
-    },
 		{
-			"text" : "Libpointmatcher"
+			"text": "Libpointmatcher",
+			"author": "Francois Pomerleau",
+			"url": "https://github.com/ethz-asl/libpointmatcher"
 		},
-    {
-      "text": "Documentation",
-      "url": "http://www.cloudcompare.org/doc/wiki/index.php?title=M3C2_(plugin)"
-    }
+		{
+			"text": "Libpointmatcher"
+		},
+		{
+			"text": "Documentation",
+			"url": "https://libpointmatcher.readthedocs.io/"
+		}
 	]
 }
