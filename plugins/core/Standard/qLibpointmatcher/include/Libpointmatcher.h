@@ -50,11 +50,14 @@ public:
 
 
 private:
-
-	void doAction();
+	//! Subsample launching
+	void doActionFilter();
 
 	//! Default action
-	QAction* m_action;
+	QAction* m_actionFilter;
+	QAction* m_actionOutlier;
+	QAction* m_actionICP;
+	QAction* m_actionConvergence;
 
 	//! Currently selected entities
 	ccHObject::Container m_selectedEntities;

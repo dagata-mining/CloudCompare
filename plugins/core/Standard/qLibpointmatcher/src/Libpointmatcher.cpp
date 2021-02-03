@@ -34,15 +34,31 @@
 Libpointmatcher::Libpointmatcher(QObject* parent)
 	: QObject(parent)
 	, ccStdPluginInterface( ":/CC/plugin/qLibpointmatcher/info.json" )
-	, m_action(nullptr)
+
+	, m_actionFilter(nullptr)
+	, m_actionOutlier(nullptr)
+	, m_actionICP(nullptr)
+	,m_actionConvergence(nullptr)
 {
 }
 
 void Libpointmatcher::onNewSelection(const ccHObject::Container& selectedEntities)
 {
-	if (m_action)
+	if (m_actionFilter)
 	{
-		m_action->setEnabled(selectedEntities.size() >= 1 && selectedEntities[0]->isA(CC_TYPES::POINT_CLOUD));
+		m_actionFilter->setEnabled(selectedEntities.size() >= 1 && selectedEntities[0]->isA(CC_TYPES::POINT_CLOUD));
+	}
+	if (m_actionOutlier)
+	{
+		m_actionOutlier->setEnabled(selectedEntities.size() >= 1 && selectedEntities[0]->isA(CC_TYPES::POINT_CLOUD));
+	}
+	if (m_actionICP)
+	{
+		m_actionICP->setEnabled(selectedEntities.size() >= 1 && selectedEntities[0]->isA(CC_TYPES::POINT_CLOUD));
+	}
+	if (m_actionConvergence)
+	{
+		m_actionConvergence->setEnabled(selectedEntities.size() >= 1 && selectedEntities[0]->isA(CC_TYPES::POINT_CLOUD));
 	}
 
 	m_selectedEntities = selectedEntities;
@@ -50,18 +66,42 @@ void Libpointmatcher::onNewSelection(const ccHObject::Container& selectedEntitie
 
 QList<QAction *> Libpointmatcher::getActions()
 {
-	if (!m_action)
+	if (!m_actionFilter)
 	{
-		m_action = new QAction(getName(),this);
-		m_action->setToolTip(getDescription());
-		m_action->setIcon(getIcon());
-		connect(m_action, &QAction::triggered, this, &Libpointmatcher::doAction);
+		m_actionFilter = new QAction("Subsample",this);
+		m_actionFilter->setToolTip("Subsample with Libpointmatcher chains");
+		m_actionFilter->setIcon(QIcon(QString::fromUtf8(":/CC/plugin/qLibpointmatcher/images/filterIcon.png")));
+		connect(m_actionFilter, &QAction::triggered, this, &Libpointmatcher::doActionFilter);
+	}
+	if (!m_actionOutlier)
+	{
+		m_actionOutlier = new QAction("Outliers", this);
+		m_actionOutlier->setToolTip("Outliers filters with Libpointmatcher chains");
+		m_actionOutlier->setIcon(QIcon(QString::fromUtf8(":/CC/plugin/qLibpointmatcher/images/outlierIcon.png")));
+		connect(m_actionOutlier, &QAction::triggered, this, &Libpointmatcher::doActionFilter);
+	}
+	if (!m_actionICP)
+	{
+		m_actionICP = new QAction("ICP", this);
+		m_actionICP->setToolTip("ICP with Libpointmatcher chains");
+		m_actionICP->setIcon(QIcon(QString::fromUtf8(":/CC/plugin/qLibpointmatcher/images/ICPIcon.png")));
+		connect(m_actionICP, &QAction::triggered, this, &Libpointmatcher::doActionFilter);
+	}
+	if (!m_actionConvergence)
+	{
+		m_actionConvergence = new QAction("Convergence", this);
+		m_actionConvergence->setToolTip("Convergence with Libpointmatcher/M3C2 chains");
+		m_actionConvergence->setIcon(QIcon(QString::fromUtf8(":/CC/plugin/qLibpointmatcher/images/convergenceIcon.png")));
+		connect(m_actionConvergence, &QAction::triggered, this, &Libpointmatcher::doActionFilter);
 	}
 
-	return QList<QAction *>{ m_action };
+	return QList<QAction *>{ m_actionFilter,
+							m_actionOutlier,
+							m_actionICP,
+							m_actionConvergence};
 }
 
-void Libpointmatcher::doAction()
+void Libpointmatcher::doActionFilter()
 {
 	//disclaimer accepted?
 	if (!DisclaimerDialog::show(m_app))

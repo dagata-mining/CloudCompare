@@ -15,10 +15,10 @@
 //#                                                                        #
 //##########################################################################
 
-#ifndef LIBPOINTMATCHER_DIALOG_HEADER
-#define LIBPOINTMATCHER_DIALOG_HEADER
+#ifndef LIBPOINTMATCHER_OUTLIER_DIALOG_HEADER
+#define LIBPOINTMATCHER__OUTLIER_DIALOG_HEADER
 
-#include <ui_LibpointmatcherDialog.h>
+#include <ui_LibpointmatcherOutlierDialog.h>
 
 //Local
 #include <LibpointmatcherTools.h>
@@ -31,14 +31,14 @@ class ccPointCloud;
 class ccHObject;
 
 //! Libpointmatcher plugin's main dialog
-class LibpointmatcherDialog : public QDialog, public Ui::LibpointmatcherDialog
+class LibpointmatcherOutlierDialog : public QDialog, public Ui::LibpointmatcherOutlierDialog
 {
 	Q_OBJECT
 
 public:
 
 	//! Default constructor
-	LibpointmatcherDialog(ccMainAppInterface* app);
+	LibpointmatcherOutlierDialog(ccMainAppInterface* app);
 
 	//! Returns cloud #1
 	ccPointCloud* getCloud1() const { return m_cloud1; }
@@ -65,23 +65,7 @@ public:
 	std::vector< std::shared_ptr<PM::DataPointsFilter>> getFilters() const { return m_filters; }
 
 	std::shared_ptr<PM::DataPointsFilter> getNormalParams() const {return m_normalParams;}
-
-
-	//! Exportation options
-	enum ExportOptions {	PROJECT_ON_CLOUD1,
-							PROJECT_ON_CLOUD2,
-							PROJECT_ON_CORE_POINTS,
-	};
-
-	//! Returns selected export option
-	ExportOptions getExportOption() const;
-
-	//! Returns whether the original cloud should be kept instead of creating a new output one
-	/** Only valid if the export option is PROJECT_ON_CORE_POINTS.
-	**/
-	bool keepOriginalCloud() const;
-
-
+	
 	//! change the filter options
 	void acceptFilterOptions();
 	//! changing the selected item on the filters list disabling and enabling position change and deleting filter
@@ -100,6 +84,9 @@ public:
 	void disableFilterListButtons();
 	//! return current filter tab widget
 	int getCurrentFilterTabWidget();
+
+	//!Outlier filters
+	void acceptOutlierOption();
 
 protected:
 
