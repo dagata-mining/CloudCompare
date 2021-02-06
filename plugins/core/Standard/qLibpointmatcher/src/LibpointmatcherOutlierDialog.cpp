@@ -198,9 +198,10 @@ void LibpointmatcherOutlierDialog::acceptNormalOptions()
 void LibpointmatcherOutlierDialog::acceptOutlierOption() 
 {
 	std::shared_ptr<PM::OutlierFilter> outlier;
+	int indexOutlier = outlierType->currentIndex();
 	bool outlierNeedNormals = false;
 
-	switch (indexFilter) {
+	switch (indexOutlier) {
 	
 	case 0:
 	{
@@ -234,6 +235,16 @@ void LibpointmatcherOutlierDialog::acceptOutlierOption()
 	}
 	case 3:
 	{
+		std::string ratioValue = std::to_string(trimmedOutlierRatio->value());
+		outlier = PM::get().OutlierFilterRegistrar.create("TrimmedDistOutlierFilter",
+			{
+				{"ratio",ratioValue},
+			}
+		);
+		break;
+	}
+	case 4:
+	{
 		std::string minRatioValue = std::to_string(varTrimmedOutlierMin->value());
 		std::string maxRatioValue = std::to_string(varTrimmedOutlierMax->value());
 		std::string lamdaValue = std::to_string(varTrimmedOutlierLambda->value());
@@ -246,63 +257,78 @@ void LibpointmatcherOutlierDialog::acceptOutlierOption()
 		);
 		break;
 	}
-	case 4:
+	case 5:
 	{
-		std::string maxAngleValue = std::to_string(surfaceOutlierAngle->value());
-		
+		const double halfC = M_PI / 180;
+		std::string maxAngleValue = std::to_string(surfaceOutlierAngle->value()*halfC);
 		outlier = PM::get().OutlierFilterRegistrar.create("SurfaceNormalOutlierFilter",
 			{
-				{"maxAngle",maxAngleValue},
-					
+				{"maxAngle",maxAngleValue},	
 			}
 		);
 		outlierNeedNormals = true;
 		break;
 	}
-	case 5:
+	case 6:
 	{
-		std::string thresholdValue = std::to_string(genericOutlierThreshold->value());
-
-		std::string sourceValue = "reference";
-		if (!genericOutlierSource->isChecked()) { sourceValue = "reading"; }
-
-		std::string useSoftThresholdValue = "1";
-		if (!genericOutlierSoftThreshold->isChecked()) { useSoftThresholdValue = "0"; }
-		std::string useLargerThanValue = "1";
-		if (!genericOutlierSoftLargerThan->isChecked()) useLargerThanValue = "0"; }
-
-		outlier = PM::get().OutlierFilterRegistrar.create("GenericDescriptorOutlierFilter",
+		
+		int indexRobust = OptionsRobust->currentIndex();
+		std::string robustFctValue = 0;
+		switch (indexRobust)
 			{
-				{"source",sourceValue},
-				{"useSoftThreshold",useSoftThresholdValue},
-				{"useLargerThan",useLargerThanValue},
-				{"threshold",thresholdValue}
+			case 0:
+				robustFctValue = "cauchy";
+				break;
+			case 1:
+				robustFctValue = "welsch";
+				break;
+			case 2:
+				robustFctValue = "sc";
+				break;
+			case 3:
+				robustFctValue = "gm";
+				break;
+			case 4:
+				robustFctValue = "tukey";
+				break;
+			case 5:
+				robustFctValue = "huber";
+				break;
+			case 6:
+				robustFctValue = "L1";
+				break;
+			}
+
+		std::string tuningValue = std::to_string(robustOutlierTuning->value());
+		std::string iterationValue = std::to_string((int)round(robustOutlierIteration->value()));
+
+		std::string scaleValue = "none";
+		if (robustOutlierScaleMad->isChecked()) { scaleValue = "mad"; }
+		if (robustOutlierScaleBerg->isChecked()) { scaleValue = "berg"; }
+		
+		std::string distanceTypeValue = "point2point";
+		if (robustOutlierDistancePlane->isChecked()) 
+		{ 
+			distanceTypeValue = "point2plane"; 
+			outlierNeedNormals = true;
+		}
+
+		outlier = PM::get().OutlierFilterRegistrar.create("RobustOutlierFilter",
+			{
+				{"robustFct",robustFctValue},
+				{"tuning",tuningValue},
+				{"scaleEstimator",scaleValue},
+				{"nbIterationForScale",iterationValue},
+				{"distanceType",distanceTypeValue}
 			}
 		);
 		break;
 	}
-	case 6:
+	default: 
 	{
-		std::string thresholdValue = std::to_string(genericOutlierThreshold->value());
-
-		std::string sourceValue = "reference";
-		if (!genericOutlierSource->isChecked()) { sourceValue = "reading"; }
-
-		std::string useSoftThresholdValue = "1";
-		if (!genericOutlierSoftThreshold->isChecked()) { useSoftThresholdValue = "0"; }
-		std::string useLargerThanValue = "1";
-		if (!genericOutlierSoftLargerThan->isChecked()) useLargerThanValue = "0"; }
-
-	outlier = PM::get().OutlierFilterRegistrar.create("GenericDescriptorOutlierFilter",
-		{
-			{"source",sourceValue},
-			{"useSoftThreshold",useSoftThresholdValue},
-			{"useLargerThan",useLargerThanValue},
-			{"threshold",thresholdValue}
-		}
-	);
-	break;
-}
+		outlier = PM::get().OutlierFilterRegistrar.create("NullOutlierFilter");
+		break;
+	}
 	}
 }
 
