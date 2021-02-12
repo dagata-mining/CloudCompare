@@ -511,6 +511,11 @@ bool LibpointmatcherProcess::Subsample(const LibpointmatcherDialog& dlg, ccHObje
 	return !error;
 }
 
+bool LibpointmatcherProcess::ICP(const LibpointmatcherOutlierDialog& dlg, ccHObject* entity, QString& errorMessage, QWidget* parentWidget/*=nullptr*/, ccMainAppInterface* app/*=nullptr*/)
+{
 
+	
+	return false;
+}
 
 

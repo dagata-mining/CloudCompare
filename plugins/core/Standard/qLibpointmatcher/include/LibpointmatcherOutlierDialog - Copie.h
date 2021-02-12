@@ -16,7 +16,7 @@
 //##########################################################################
 
 #ifndef LIBPOINTMATCHER_OUTLIER_DIALOG_HEADER
-#define LIBPOINTMATCHER_OUTLIER_DIALOG_HEADER
+#define LIBPOINTMATCHER__OUTLIER_DIALOG_HEADER
 
 #include <ui_LibpointmatcherOutlierDialog.h>
 
@@ -70,33 +70,23 @@ public:
 	void acceptFilterOptions(bool);
 	//! changing the selected item on the filters list disabling and enabling position change and deleting filter
 	void selectingFilterItemRef();
-	void selectingFilterItemRead();
 	//! accept Normals Options
-	void acceptNormalOptions();
+	void acceptNormalOptionsRef();
 	//! add to filter list
 	void addToFilterListRef();
-	void addToFilterListRead();
 	//! changeFilterPositionUp
 	void changeFilterPositionUpRef();
-	void changeFilterPositionUpRead();
 	//! changeFilterPositionDown
 	void changeFilterPositionDownRef();
-	void changeFilterPositionDownRead();
 	//! remove a Filter to the filter List
 	void removeFromFilterListRef();
-	void removeFromFilterListRead();
 	//! disable list filter buttons;
 	void disableFilterListButtonsRef();
-	void disableFilterListButtonsRead();
 	//! return current filter tab widget
 	int getCurrentFilterTabWidget();
 
 	//!Outlier filters
 	void acceptOutlierOption();
-	//!KD tree filters
-	void acceptKdTreeOption();
-	//!Matcher Option
-	void acceptMinimizerOption();
 
 protected:
 
@@ -118,13 +108,9 @@ protected: //members
 	std::vector< std::shared_ptr<PM::DataPointsFilter>> m_filtersRef;
 	std::vector<bool> m_needNormalsRef;
 	std::vector<bool> m_useExistingNormalsRef;
-	std::vector< std::shared_ptr<PM::DataPointsFilter>> m_filtersRead;
-	std::vector<bool> m_needNormalsRead;
-	std::vector<bool> m_useExistingNormalsRead;
 	std::shared_ptr<PM::DataPointsFilter> m_normalParams;
 	QString m_currentFilterName;
 	int m_filterItemRef;
-	int m_filterItemRead;
 
 };
 

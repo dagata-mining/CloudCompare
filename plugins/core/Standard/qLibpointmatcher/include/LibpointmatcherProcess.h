@@ -20,16 +20,14 @@
 
 //Local
 #include "LibpointmatcherDialog.h"
+#include "LibpointmatcherOutlierDialog.h"
 //qCC
 #include "ccMainAppInterface.h"
 
 class ccMainAppInterface;
 
-//! M3C2 process
-/** See "Accurate 3D comparison of complex topography with terrestrial laser scanner:
-	application to the Rangitikei canyon (N-Z)", Lague, D., Brodu, N. and Leroux, J.,
-	2013, ISPRS journal of Photogrammmetry and Remote Sensing
-**/
+//!
+
 class LibpointmatcherProcess
 {
 public:
@@ -39,6 +37,13 @@ public:
 						QString& errorMessage,
 						QWidget* parentWidget/*=nullptr*/,
 						ccMainAppInterface* app/*=nullptr*/);
+	static bool ICP(const LibpointmatcherOutlierDialog& dlg,
+		ccHObject* entity,
+		QString& errorMessage,
+		QWidget* parentWidget/*=nullptr*/,
+		ccMainAppInterface* app/*=nullptr*/);
+
 };
+
 
 #endif //LIBPOINTMATCHER_PROCESS_HEADER

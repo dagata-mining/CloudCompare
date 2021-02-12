@@ -24,6 +24,7 @@
 //local
 #include "LibpointmatcherTools.h"
 #include "LibpointmatcherDialog.h"
+#include "LibpointmatcherOutlierDialog.h"
 #include "LibpointmatcherDisclaimerDialog.h"
 #include "LibpointmatcherProcess.h"
 
@@ -36,7 +37,6 @@ Libpointmatcher::Libpointmatcher(QObject* parent)
 	, ccStdPluginInterface( ":/CC/plugin/qLibpointmatcher/info.json" )
 
 	, m_actionFilter(nullptr)
-	, m_actionOutlier(nullptr)
 	, m_actionICP(nullptr)
 	,m_actionConvergence(nullptr)
 {
@@ -47,10 +47,6 @@ void Libpointmatcher::onNewSelection(const ccHObject::Container& selectedEntitie
 	if (m_actionFilter)
 	{
 		m_actionFilter->setEnabled(selectedEntities.size() >= 1 && selectedEntities[0]->isA(CC_TYPES::POINT_CLOUD));
-	}
-	if (m_actionOutlier)
-	{
-		m_actionOutlier->setEnabled(selectedEntities.size() >= 1 && selectedEntities[0]->isA(CC_TYPES::POINT_CLOUD));
 	}
 	if (m_actionICP)
 	{
@@ -73,19 +69,13 @@ QList<QAction *> Libpointmatcher::getActions()
 		m_actionFilter->setIcon(QIcon(QString::fromUtf8(":/CC/plugin/qLibpointmatcher/images/filterIcon.png")));
 		connect(m_actionFilter, &QAction::triggered, this, &Libpointmatcher::doActionFilter);
 	}
-	if (!m_actionOutlier)
-	{
-		m_actionOutlier = new QAction("Outliers", this);
-		m_actionOutlier->setToolTip("Outliers filters with Libpointmatcher chains");
-		m_actionOutlier->setIcon(QIcon(QString::fromUtf8(":/CC/plugin/qLibpointmatcher/images/outlierIcon.png")));
-		connect(m_actionOutlier, &QAction::triggered, this, &Libpointmatcher::doActionFilter);
-	}
+
 	if (!m_actionICP)
 	{
 		m_actionICP = new QAction("ICP", this);
 		m_actionICP->setToolTip("ICP with Libpointmatcher chains");
 		m_actionICP->setIcon(QIcon(QString::fromUtf8(":/CC/plugin/qLibpointmatcher/images/ICPIcon.png")));
-		connect(m_actionICP, &QAction::triggered, this, &Libpointmatcher::doActionFilter);
+		connect(m_actionICP, &QAction::triggered, this, &Libpointmatcher::doActionICP);
 	}
 	if (!m_actionConvergence)
 	{
@@ -96,7 +86,6 @@ QList<QAction *> Libpointmatcher::getActions()
 	}
 
 	return QList<QAction *>{ m_actionFilter,
-							m_actionOutlier,
 							m_actionICP,
 							m_actionConvergence};
 }
@@ -155,6 +144,61 @@ void Libpointmatcher::doActionFilter()
 			}
 		}
 		else 
+		{
+			break;
+		}
+	}
+	if (m_app)
+	{
+		m_app->refreshAll();
+		pDlg.reset();
+	}
+
+}
+
+void Libpointmatcher::doActionICP()
+{
+	//disclaimer accepted?
+	if (!DisclaimerDialog::show(m_app))
+		return;
+
+	//m_app should have already been initialized by CC when plugin is loaded!
+	assert(m_app);
+	if (!m_app)
+		return;
+
+	if (m_selectedEntities.size() < 1 || !m_selectedEntities[0]->isA(CC_TYPES::POINT_CLOUD))
+	{
+		m_app->dispToConsole("Select two pointclouds", ccMainAppInterface::ERR_CONSOLE_MESSAGE);
+		return;
+	}
+
+	//display dialog
+	LibpointmatcherOutlierDialog dlgICP(m_app);
+	if (!dlgICP.exec())
+	{
+		//process cancelled by the user
+		return;
+	}
+	// verify on which widget you are
+
+
+	dlgICP.acceptNormalOptions();
+
+
+	QString errorMessage;
+	ccPointCloud* outputCloud = nullptr; //only necessary for the command line version in fact
+	QProgressDialog pDlg("Please wait...", "Cancel", 0, 0);
+	pDlg.setWindowTitle("Libpointmatcher");
+	pDlg.show();
+	for (int i = 0; i < m_selectedEntities.size(); i++) {
+		if (!pDlg.wasCanceled()) {
+			if (!LibpointmatcherProcess::ICP(dlgICP, m_selectedEntities[i], errorMessage, m_app->getMainWindow(), m_app))
+			{
+				m_app->dispToConsole(errorMessage, ccMainAppInterface::ERR_CONSOLE_MESSAGE);
+			}
+		}
+		else
 		{
 			break;
 		}

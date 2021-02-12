@@ -52,10 +52,11 @@ public:
 private:
 	//! Subsample launching
 	void doActionFilter();
+	//! ICP launching
+	void doActionICP();
 
 	//! Default action
 	QAction* m_actionFilter;
-	QAction* m_actionOutlier;
 	QAction* m_actionICP;
 	QAction* m_actionConvergence;
 

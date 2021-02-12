@@ -63,30 +63,19 @@ LibpointmatcherOutlierDialog::LibpointmatcherOutlierDialog(ccMainAppInterface* a
 	, m_normalParams(nullptr)
 	, m_currentFilterName("")
 	, m_filterItemRef(0)
-	, m_filterItemRead(0)
 {
 
 	setupUi(this);
-	//Ref
-	connect(AddRef, &QAbstractButton::clicked, this, &LibpointmatcherOutlierDialog::addToFilterListRef);
-	connect(listFiltersRef, &QListWidget::currentItemChanged, this, &LibpointmatcherOutlierDialog::selectingFilterItemRef);
-	connect(listFiltersRef, &QListWidget::itemClicked, this, &LibpointmatcherOutlierDialog::selectingFilterItemRef);
-	connect(switchDownFilterRef, &QToolButton::clicked, this, &LibpointmatcherOutlierDialog::changeFilterPositionDownRef);
-	connect(switchUpFilterRef, &QToolButton::clicked, this, &LibpointmatcherOutlierDialog::changeFilterPositionUpRef);
-	connect(deleteOneFilterRef, &QToolButton::clicked, this, &LibpointmatcherOutlierDialog::removeFromFilterListRef);
-	// read
-	connect(AddRead, &QAbstractButton::clicked, this, &LibpointmatcherOutlierDialog::addToFilterListRead);
-	connect(listFiltersRead, &QListWidget::currentItemChanged, this, &LibpointmatcherOutlierDialog::selectingFilterItemRead);
-	connect(listFiltersRead, &QListWidget::itemClicked, this, &LibpointmatcherOutlierDialog::selectingFilterItemRead);
-	connect(switchDownFilterRead, &QToolButton::clicked, this, &LibpointmatcherOutlierDialog::changeFilterPositionDownRead);
-	connect(switchUpFilterRead, &QToolButton::clicked, this, &LibpointmatcherOutlierDialog::changeFilterPositionUpRead);
-	connect(deleteOneFilterRead, &QToolButton::clicked, this, &LibpointmatcherOutlierDialog::removeFromFilterListRead);
+	connect(addFilterButton, &QAbstractButton::clicked, this, &LibpointmatcherOutlierDialog::addToFilterList);
+	connect(listFilters, &QListWidget::currentItemChanged, this, &LibpointmatcherOutlierDialog::selectingFilterItem);
+	connect(listFilters, &QListWidget::itemClicked, this, &LibpointmatcherOutlierDialog::selectingFilterItem);
+	connect(switchDownFilter, &QToolButton::clicked, this, &LibpointmatcherOutlierDialog::changeFilterPositionDown);
+	connect(switchUpFilter, &QToolButton::clicked, this, &LibpointmatcherOutlierDialog::changeFilterPositionUp);
+	connect(deleteOneFilter, &QToolButton::clicked, this, &LibpointmatcherOutlierDialog::removeFromFilterList);
 
 	// Set up on initialization 
-	listFiltersRef->setCurrentRow(0);
+	listFilters->setCurrentRow(0);
 	selectingFilterItemRef();
-	listFiltersRead->setCurrentRow(0);
-	selectingFilterItemRead();
 }
 
 void LibpointmatcherOutlierDialog::disableFilterListButtonsRef()
@@ -96,33 +85,15 @@ void LibpointmatcherOutlierDialog::disableFilterListButtonsRef()
 	switchUpFilterRef->setEnabled(false);
 	deleteOneFilterRef->setEnabled(false);
 }
-void LibpointmatcherOutlierDialog::disableFilterListButtonsRead()
-{
-	switchDownFilterRead->setEnabled(false);
-	switchUpFilterRead->setEnabled(false);
-	deleteOneFilterRead->setEnabled(false);
-}
 
 void LibpointmatcherOutlierDialog::addToFilterListRef() {
-	if (filterTabWidget->currentIndex() != 0)
+	if (filterTabWidgetRef->currentIndex() != 0)
 	{
 		return;
 	};
 
 	acceptFilterOptions(true);
 	listFiltersRef->addItem(m_currentFilterName);
-
-
-};
-
-void LibpointmatcherOutlierDialog::addToFilterListRead() {
-	if (filterTabWidget->currentIndex() != 0)
-	{
-		return;
-	};
-
-	acceptFilterOptions(false);
-	listFiltersRead->addItem(m_currentFilterName);
 
 
 };
@@ -144,24 +115,6 @@ void LibpointmatcherOutlierDialog::selectingFilterItemRef()
 
 }
 
-void LibpointmatcherOutlierDialog::selectingFilterItemRead()
-{
-	m_filterItemRead = listFiltersRead->currentRow();
-	switchDownFilterRead->setEnabled(true);
-	switchUpFilterRead->setEnabled(true);
-	if (m_filterItemRead == 0)
-	{
-		switchUpFilterRead->setEnabled(false);
-	}
-	if (m_filterItemRead + 1 == m_filtersRead.size())
-	{
-		switchDownFilterRead->setEnabled(false);
-	}
-	deleteOneFilterRead->setEnabled(true);
-
-}
-
-
 void LibpointmatcherOutlierDialog::changeFilterPositionUpRef()
 {
 
@@ -173,26 +126,10 @@ void LibpointmatcherOutlierDialog::changeFilterPositionUpRef()
 	std::iter_swap(m_useExistingNormalsRef.begin() + m_filterItemRef, m_useExistingNormalsRef.begin() + m_filterItemRef - 1);
 
 	QListWidgetItem* currentItem = listFiltersRef->takeItem(m_filterItemRef-1);
-	listFiltersRef->insertItem(m_filterItemRef, currentItem);
+	listFiltersRef->insertItem(m_filterItemRef, currentItemRef);
 
 
 	selectingFilterItemRef();
-};
-void LibpointmatcherOutlierDialog::changeFilterPositionUpRead()
-{
-
-	if (m_filterItemRead == 0) {
-		return;
-	}
-	std::iter_swap(m_filtersRead.begin() + m_filterItemRead, m_filtersRead.begin() + m_filterItemRead - 1);
-	std::iter_swap(m_needNormalsRead.begin() + m_filterItemRead, m_needNormalsRead.begin() + m_filterItemRead - 1);
-	std::iter_swap(m_useExistingNormalsRead.begin() + m_filterItemRead, m_useExistingNormalsRead.begin() + m_filterItemRead - 1);
-
-	QListWidgetItem* currentItem = listFiltersRead->takeItem(m_filterItemRead - 1);
-	listFiltersRead->insertItem(m_filterItemRead, currentItem);
-
-
-	selectingFilterItemRead();
 };
 
 void LibpointmatcherOutlierDialog::changeFilterPositionDownRef()
@@ -206,28 +143,10 @@ void LibpointmatcherOutlierDialog::changeFilterPositionDownRef()
 	std::iter_swap(m_useExistingNormalsRef.begin() + m_filterItemRef, m_useExistingNormalsRef.begin() + m_filterItemRef + 1);
 
 	QListWidgetItem* currentItem = listFiltersRef->takeItem(m_filterItemRef+1);
-	listFiltersRef->insertItem(m_filterItemRef, currentItem);
+	listFilters->insertItem(m_filterItemRef, currentItem);
 
 
 	selectingFilterItemRef();
-
-};
-
-void LibpointmatcherOutlierDialog::changeFilterPositionDownRead()
-{
-
-	if (m_filterItemRead + 1 == m_filtersRead.size()) {
-		return;
-	}
-	std::iter_swap(m_filtersRead.begin() + m_filterItemRead, m_filtersRead.begin() + m_filterItemRead + 1);
-	std::iter_swap(m_needNormalsRead.begin() + m_filterItemRead, m_needNormalsRead.begin() + m_filterItemRead + 1);
-	std::iter_swap(m_useExistingNormalsRead.begin() + m_filterItemRead, m_useExistingNormalsRead.begin() + m_filterItemRead + 1);
-
-	QListWidgetItem* currentItem = listFiltersRead->takeItem(m_filterItemRead + 1);
-	listFiltersRead->insertItem(m_filterItemRead, currentItem);
-
-
-	selectingFilterItemRead();
 
 };
 
@@ -251,30 +170,6 @@ void LibpointmatcherOutlierDialog::removeFromFilterListRef() {
 	else 
 	{
 		selectingFilterItemRef();
-	}
-
-
-};
-void LibpointmatcherOutlierDialog::removeFromFilterListRead() {
-
-	if (m_filtersRead.size() == 0) {
-		return;
-	}
-	m_filtersRead.erase(m_filtersRead.begin() + m_filterItemRead);
-	m_needNormalsRead.erase(m_needNormalsRead.begin() + m_filterItemRead);
-	m_useExistingNormalsRead.erase(m_useExistingNormalsRead.begin() + m_filterItemRead);
-
-	qDeleteAll(listFiltersRead->selectedItems());
-	listFiltersRead->setCurrentRow(0);
-
-	if (m_filtersRead.size() == 0)
-	{
-		disableFilterListButtonsRead();
-
-	}
-	else
-	{
-		selectingFilterItemRead();
 	}
 
 
@@ -696,95 +591,6 @@ void LibpointmatcherOutlierDialog::acceptFilterOptions(bool ref)
 		m_useExistingNormalsRead.push_back(useExistingNormals);
 	}
 }
-void LibpointmatcherOutlierDialog::acceptKdTreeOption()
-{
-	std::shared_ptr<PM::Matcher> kdTree;
-
-	std::string epsilonValue = std::to_string((int)round(kdTreeEpsilon->value()));
-	std::string knnValue = std::to_string((int)round(kdTreeKnn->value()));
-	std::string maxDistValue = std::to_string(kdTreeMaxDist->value());
-	std::string searchTypeValue = "1";
-	if (kdTreeBrute->isChecked()) { searchTypeValue = "0"; }
-	if (kdTreeTree->isChecked()) { searchTypeValue = "1"; }
-	if (kdTreeMaxDist->value() < 0.001) { maxDistValue = "inf"; }
-
-	kdTree = PM::get().MatcherRegistrar.create(
-		"KDTreeMatcher",
-		{
-			{"knn", knnValue},
-			{"epsilon", epsilonValue},
-			{"searchType",searchTypeValue},
-			{"maxDist",maxDistValue}
-		}
-	);
-};
-void LibpointmatcherOutlierDialog::acceptMinimizerOption()
-{
-	int indexMinimizer = minimizerOption->currentIndex();
-	std::shared_ptr<PM::ErrorMinimizer> errorMinimizer;
-
-	switch (indexMinimizer) 
-	{
-	case 0: 
-	{
-		std::string pplaneforce2DValue = "0";
-		std::string pplaneforce4DOFValue = "0";
-		if (pplaneforce4DOF->isChecked()){ pplaneforce4DOFValue = "1"; }
-		if (pplaneforce2D->isChecked()) { pplaneforce2DValue = "1"; }
-		errorMinimizer =
-			PM::get().ErrorMinimizerRegistrar.create("PointToPointErrorMinimizer", {
-				{"force2D",pplaneforce2DValue},
-				{"force4DOF",pplaneforce4DOFValue} 
-				}
-				);
-		break;
-	}
-	case 1:
-	{
-		std::string pplaneforce2DValue = "0";
-		std::string pplaneforce4DOFValue = "0";
-		if (pplaneforce4DOFCov->isChecked()) { pplaneforce4DOFValue = "1"; }
-		if (pplaneforce2DCov->isChecked()) { pplaneforce2DValue = "1"; }
-		std::string sensorStdDevValue = std::to_string(pplaneStdDevCov->value());
-
-		errorMinimizer =
-			PM::get().ErrorMinimizerRegistrar.create("PointToPlaneWithCovErrorMinimizer", {
-				{"force2D",pplaneforce2DValue},
-				{"force4DOF",pplaneforce4DOFValue},
-				{"sensorStdDev",sensorStdDevValue}
-				}
-		);
-		break;
-	}
-	case 2:
-	{
-
-		errorMinimizer =
-			PM::get().ErrorMinimizerRegistrar.create("PointToPointErrorMinimizer");
-		break;
-	}
-	case 3:
-	{
-		std::string sensorStdDevValue = std::to_string(ppointStdDevCov->value());
-		errorMinimizer =
-			PM::get().ErrorMinimizerRegistrar.create("PointToPointWithCovErrorMinimizer", {
-				{"sensorStdDev",sensorStdDevValue}
-				}
-		);
-		break;
-	}
-	case 4:
-	{
-
-		errorMinimizer =
-			PM::get().ErrorMinimizerRegistrar.create("PointToPointSimilarityErrorMinimizer");
-		break;
-	}
-
-	}
-
-}
-
 
 int LibpointmatcherOutlierDialog::getCurrentFilterTabWidget()
 {
