@@ -22,6 +22,7 @@
 
 //Local
 #include <LibpointmatcherTools.h>
+#include <Libpointmatcher.h>
 
 //Qt
 #include <QSettings>
@@ -38,12 +39,12 @@ class LibpointmatcherOutlierDialog : public QDialog, public Ui::LibpointmatcherO
 public:
 
 	//! Default constructor
-	LibpointmatcherOutlierDialog(ccMainAppInterface* app);
+	LibpointmatcherOutlierDialog(ccPointCloud* cloud1, ccPointCloud* cloud2, ccMainAppInterface* app);
 
 	//! Returns cloud #1
-	ccPointCloud* getCloud1() const { return m_cloud1; }
+	ccPointCloud* getCloudRef() const { return m_cloudRef; }
 	//! Returns cloud #2
-	ccPointCloud* getCloud2() const { return m_cloud2; }
+	ccPointCloud* getCloudRead() const { return m_cloudRead; }
 
 	//! Do we use existing normals will tell to convert to DP with normals descriptors 
 	std::vector<bool> useExistingNormalsRef() const { return m_useExistingNormalsRef; }
@@ -100,6 +101,11 @@ public:
 	//! Checker Option
 	void acceptCheckerOption();
 
+	//! setclouds
+	void setClouds(ccPointCloud* cloud1, ccPointCloud* cloud2);
+	//! Swap clouds
+	void swapClouds();
+
 protected:
 
 	void setCloud1Visibility(bool);
@@ -114,8 +120,9 @@ protected: //members
 	ccMainAppInterface* m_app;
 
 
-	ccPointCloud* m_cloud1;
-	ccPointCloud* m_cloud2;
+	ccPointCloud* m_cloudRef;
+	ccPointCloud* m_cloudRead;
+
 	ccPointCloud* m_corePointsCloud;
 	std::vector< std::shared_ptr<PM::DataPointsFilter>> m_filtersRef;
 	std::vector<bool> m_needNormalsRef;

@@ -55,7 +55,7 @@ static QString GetEntityName(ccHObject* obj)
 
 
 
-LibpointmatcherOutlierDialog::LibpointmatcherOutlierDialog(ccMainAppInterface* app)
+LibpointmatcherOutlierDialog::LibpointmatcherOutlierDialog(ccPointCloud* cloud1, ccPointCloud* cloud2, ccMainAppInterface* app)
 	: QDialog(app ? app->getMainWindow() : nullptr)
 	, Ui::LibpointmatcherOutlierDialog()
 	, m_app(app)
@@ -64,6 +64,8 @@ LibpointmatcherOutlierDialog::LibpointmatcherOutlierDialog(ccMainAppInterface* a
 	, m_currentFilterName("")
 	, m_filterItemRef(0)
 	, m_filterItemRead(0)
+	, m_cloudRef(nullptr)
+	, m_cloudRead(nullptr)
 {
 
 	setupUi(this);
@@ -81,12 +83,15 @@ LibpointmatcherOutlierDialog::LibpointmatcherOutlierDialog(ccMainAppInterface* a
 	connect(switchDownFilterRead, &QToolButton::clicked, this, &LibpointmatcherOutlierDialog::changeFilterPositionDownRead);
 	connect(switchUpFilterRead, &QToolButton::clicked, this, &LibpointmatcherOutlierDialog::changeFilterPositionUpRead);
 	connect(deleteOneFilterRead, &QToolButton::clicked, this, &LibpointmatcherOutlierDialog::removeFromFilterListRead);
+	// Clouds
+	connect(swapCloudsButton, &QToolButton::clicked, this, &LibpointmatcherOutlierDialog::swapClouds);
 
 	// Set up on initialization 
 	listFiltersRef->setCurrentRow(0);
 	selectingFilterItemRef();
 	listFiltersRead->setCurrentRow(0);
 	selectingFilterItemRead();
+	setClouds(cloud1, cloud2);
 }
 
 void LibpointmatcherOutlierDialog::disableFilterListButtonsRef()
@@ -836,6 +841,35 @@ void LibpointmatcherOutlierDialog::acceptMinimizerOption()
 	}
 
 }
+void LibpointmatcherOutlierDialog::setClouds(ccPointCloud* cloud1, ccPointCloud* cloud2)
+{
+	if (!cloud1 || !cloud2)
+	{
+		assert(false);
+		return;
+	}
+	m_cloudRef = cloud1;
+	m_cloudRead = cloud2;
+
+	refCloudName->setText(GetEntityName(cloud1));
+	readCloudName->setText(GetEntityName(cloud2));
+}
+
+void LibpointmatcherOutlierDialog::swapClouds()
+{
+	if (!m_cloudRef || !m_cloudRead)
+	{
+		assert(false);
+		return;
+	}
+	ccPointCloud* temp_ref = m_cloudRef;
+	ccPointCloud* temp_read = m_cloudRead;
+	m_cloudRef = temp_read;
+	m_cloudRead = temp_ref;
+
+	refCloudName->setText(GetEntityName(m_cloudRef));
+	readCloudName->setText(GetEntityName(m_cloudRead));
+}
 
 
 int LibpointmatcherOutlierDialog::getCurrentFilterTabWidget()
@@ -845,10 +879,10 @@ int LibpointmatcherOutlierDialog::getCurrentFilterTabWidget()
 
 void LibpointmatcherOutlierDialog::setCloud1Visibility(bool state)
 {
-	if (m_cloud1)
+	if (m_cloudRef)
 	{
-		m_cloud1->setVisible(state);
-		m_cloud1->prepareDisplayForRefresh();
+		m_cloudRef->setVisible(state);
+		m_cloudRef->prepareDisplayForRefresh();
 	}
 	if (m_app)
 	{
@@ -859,10 +893,10 @@ void LibpointmatcherOutlierDialog::setCloud1Visibility(bool state)
 
 void LibpointmatcherOutlierDialog::setCloud2Visibility(bool state)
 {
-	if (m_cloud2)
+	if (m_cloudRead)
 	{
-		m_cloud2->setVisible(state);
-		m_cloud2->prepareDisplayForRefresh();
+		m_cloudRead->setVisible(state);
+		m_cloudRead->prepareDisplayForRefresh();
 	}
 	if (m_app)
 	{

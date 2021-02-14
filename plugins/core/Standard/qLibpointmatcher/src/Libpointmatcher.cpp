@@ -50,7 +50,7 @@ void Libpointmatcher::onNewSelection(const ccHObject::Container& selectedEntitie
 	}
 	if (m_actionICP)
 	{
-		m_actionICP->setEnabled(selectedEntities.size() >= 1 && selectedEntities[0]->isA(CC_TYPES::POINT_CLOUD));
+		m_actionICP->setEnabled(selectedEntities.size() == 2 && selectedEntities[0]->isA(CC_TYPES::POINT_CLOUD) && selectedEntities[1]->isA(CC_TYPES::POINT_CLOUD));
 	}
 	if (m_actionConvergence)
 	{
@@ -167,14 +167,16 @@ void Libpointmatcher::doActionICP()
 	if (!m_app)
 		return;
 
-	if (m_selectedEntities.size() < 1 || !m_selectedEntities[0]->isA(CC_TYPES::POINT_CLOUD))
+	if (m_selectedEntities.size() != 2 || !m_selectedEntities[0]->isA(CC_TYPES::POINT_CLOUD) || !m_selectedEntities[1]->isA(CC_TYPES::POINT_CLOUD))
 	{
 		m_app->dispToConsole("Select two pointclouds", ccMainAppInterface::ERR_CONSOLE_MESSAGE);
 		return;
 	}
 
 	//display dialog
-	LibpointmatcherOutlierDialog dlgICP(m_app);
+	ccPointCloud* cloud1 = ccHObjectCaster::ToPointCloud(m_selectedEntities[0]);
+	ccPointCloud* cloud2 = ccHObjectCaster::ToPointCloud(m_selectedEntities[1]);
+	LibpointmatcherOutlierDialog dlgICP(cloud1,cloud2,m_app);
 	if (!dlgICP.exec())
 	{
 		//process cancelled by the user
