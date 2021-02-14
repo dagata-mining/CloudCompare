@@ -720,8 +720,10 @@ void LibpointmatcherOutlierDialog::acceptKdTreeOption()
 };
 void LibpointmatcherOutlierDialog::acceptMinimizerOption()
 {
-	int indexMinimizer = minimizerOption->currentIndex();
+	int indexMinimizer = minimizerType->currentIndex();
 	std::shared_ptr<PM::ErrorMinimizer> errorMinimizer;
+	bool useExistingNormals=true;
+	bool needNormals=false;
 
 	switch (indexMinimizer) 
 	{
@@ -732,11 +734,14 @@ void LibpointmatcherOutlierDialog::acceptMinimizerOption()
 		if (pplaneforce4DOF->isChecked()){ pplaneforce4DOFValue = "1"; }
 		if (pplaneforce2D->isChecked()) { pplaneforce2DValue = "1"; }
 		errorMinimizer =
-			PM::get().ErrorMinimizerRegistrar.create("PointToPointErrorMinimizer", {
+			PM::get().ErrorMinimizerRegistrar.create("PointToPlaneErrorMinimizer", {
 				{"force2D",pplaneforce2DValue},
 				{"force4DOF",pplaneforce4DOFValue} 
 				}
 				);
+		// Reference Cloud will need normals
+		if (!pplaneNormals->isChecked()) { useExistingNormals = false; }
+		needNormals = true;
 		break;
 	}
 	case 1:
@@ -754,6 +759,9 @@ void LibpointmatcherOutlierDialog::acceptMinimizerOption()
 				{"sensorStdDev",sensorStdDevValue}
 				}
 		);
+		// Reference Cloud will need normals
+		if (!pplaneNormalsCov->isChecked()) { useExistingNormals = false; }
+		needNormals = true;
 		break;
 	}
 	case 2:
@@ -778,6 +786,9 @@ void LibpointmatcherOutlierDialog::acceptMinimizerOption()
 
 		errorMinimizer =
 			PM::get().ErrorMinimizerRegistrar.create("PointToPointSimilarityErrorMinimizer");
+		// Reference Cloud will need normals, the cloud will scaled
+		if (!pSimilarityNormals->isChecked()) { useExistingNormals = false; }
+		needNormals = true;
 		break;
 	}
 

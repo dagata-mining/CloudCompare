@@ -21,7 +21,7 @@
    <item>
     <widget class="QTabWidget" name="filterTabWidget">
      <property name="currentIndex">
-      <number>4</number>
+      <number>5</number>
      </property>
      <widget class="QWidget" name="filterParams">
       <property name="accessibleName">
@@ -129,11 +129,11 @@
          <x>9</x>
          <y>68</y>
          <width>728</width>
-         <height>181</height>
+         <height>301</height>
         </rect>
        </property>
        <property name="currentIndex">
-        <number>10</number>
+        <number>3</number>
        </property>
        <widget class="QWidget" name="MaximumDensityFilter">
         <widget class="QGroupBox" name="groupBox">
@@ -3081,6 +3081,462 @@
        </widget>
       </widget>
      </widget>
+     <widget class="QWidget" name="tab">
+      <attribute name="title">
+       <string>Minimizer</string>
+      </attribute>
+      <widget class="QGroupBox" name="mainGroupBox_3">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>10</y>
+         <width>728</width>
+         <height>53</height>
+        </rect>
+       </property>
+       <property name="title">
+        <string>Minimizer Type</string>
+       </property>
+       <layout class="QGridLayout" name="gridLayout_3">
+        <item row="0" column="2">
+         <widget class="QComboBox" name="minimizerType">
+          <property name="currentIndex">
+           <number>0</number>
+          </property>
+          <item>
+           <property name="text">
+            <string>PointToPlane</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>PointToPlaneWithCov</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>PointToPoint</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>PointToPointWithCov</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>PointToSimilarity (Scaling)</string>
+           </property>
+          </item>
+         </widget>
+        </item>
+        <item row="0" column="0">
+         <widget class="QLabel" name="label_17">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="text">
+           <string>Model</string>
+          </property>
+          <property name="buddy">
+           <cstring>mainGroupBox</cstring>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QStackedWidget" name="stackedMinimizer">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>70</y>
+         <width>751</width>
+         <height>291</height>
+        </rect>
+       </property>
+       <property name="currentIndex">
+        <number>4</number>
+       </property>
+       <widget class="QWidget" name="pointToPlane">
+        <widget class="QGroupBox" name="groupBox_21">
+         <property name="geometry">
+          <rect>
+           <x>10</x>
+           <y>0</y>
+           <width>561</width>
+           <height>171</height>
+          </rect>
+         </property>
+         <property name="title">
+          <string>Options</string>
+         </property>
+         <widget class="QLabel" name="label_19">
+          <property name="geometry">
+           <rect>
+            <x>20</x>
+            <y>30</y>
+            <width>421</width>
+            <height>16</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>This minimizer can limit the transformation</string>
+          </property>
+         </widget>
+         <widget class="QRadioButton" name="pplaneforce2D">
+          <property name="geometry">
+           <rect>
+            <x>240</x>
+            <y>50</y>
+            <width>141</width>
+            <height>17</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>2D (X,Y,Yaw)</string>
+          </property>
+          <property name="checked">
+           <bool>false</bool>
+          </property>
+         </widget>
+         <widget class="QRadioButton" name="pplaneforce4DOF">
+          <property name="geometry">
+           <rect>
+            <x>120</x>
+            <y>50</y>
+            <width>111</width>
+            <height>17</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>4DOF (x,y,z,yaw)</string>
+          </property>
+          <property name="checked">
+           <bool>false</bool>
+          </property>
+         </widget>
+         <widget class="QRadioButton" name="pplaneforce6DOF">
+          <property name="geometry">
+           <rect>
+            <x>20</x>
+            <y>50</y>
+            <width>91</width>
+            <height>17</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>6DOF (Normal)</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+         <widget class="QCheckBox" name="pplaneNormals">
+          <property name="geometry">
+           <rect>
+            <x>20</x>
+            <y>130</y>
+            <width>121</width>
+            <height>17</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>Use Existing Normals</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+         <widget class="QLabel" name="label_23">
+          <property name="geometry">
+           <rect>
+            <x>20</x>
+            <y>110</y>
+            <width>421</width>
+            <height>16</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>This minimizer needs to have normals on the reference Point Cloud</string>
+          </property>
+         </widget>
+        </widget>
+       </widget>
+       <widget class="QWidget" name="pointToPlaneCov">
+        <widget class="QGroupBox" name="groupBox_22">
+         <property name="geometry">
+          <rect>
+           <x>0</x>
+           <y>10</y>
+           <width>561</width>
+           <height>211</height>
+          </rect>
+         </property>
+         <property name="title">
+          <string>Options</string>
+         </property>
+         <widget class="QLabel" name="label_20">
+          <property name="geometry">
+           <rect>
+            <x>20</x>
+            <y>30</y>
+            <width>421</width>
+            <height>16</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>This minimizer can limit the transformation</string>
+          </property>
+         </widget>
+         <widget class="QRadioButton" name="pplaneforce2DCov">
+          <property name="geometry">
+           <rect>
+            <x>240</x>
+            <y>50</y>
+            <width>141</width>
+            <height>17</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>2D (X,Y,Yaw)</string>
+          </property>
+          <property name="checked">
+           <bool>false</bool>
+          </property>
+          <attribute name="buttonGroup">
+           <string notr="true">buttonGroup_10</string>
+          </attribute>
+         </widget>
+         <widget class="QRadioButton" name="pplaneforce4DOFCov">
+          <property name="geometry">
+           <rect>
+            <x>120</x>
+            <y>50</y>
+            <width>111</width>
+            <height>17</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>4DOF (x,y,z,yaw)</string>
+          </property>
+          <property name="checked">
+           <bool>false</bool>
+          </property>
+          <attribute name="buttonGroup">
+           <string notr="true">buttonGroup_10</string>
+          </attribute>
+         </widget>
+         <widget class="QRadioButton" name="pplaneforce6DOF_2">
+          <property name="geometry">
+           <rect>
+            <x>20</x>
+            <y>50</y>
+            <width>91</width>
+            <height>17</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>6DOF (Normal)</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+          <attribute name="buttonGroup">
+           <string notr="true">buttonGroup_10</string>
+          </attribute>
+         </widget>
+         <widget class="QCheckBox" name="pplaneNormalsCov">
+          <property name="geometry">
+           <rect>
+            <x>20</x>
+            <y>180</y>
+            <width>121</width>
+            <height>17</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>Use Existing Normals</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+         <widget class="QLabel" name="label_31">
+          <property name="geometry">
+           <rect>
+            <x>20</x>
+            <y>160</y>
+            <width>421</width>
+            <height>16</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>This minimizer needs to have normals on the reference Point Cloud</string>
+          </property>
+         </widget>
+         <widget class="QDoubleSpinBox" name="pplaneStdDevCov">
+          <property name="geometry">
+           <rect>
+            <x>20</x>
+            <y>100</y>
+            <width>101</width>
+            <height>22</height>
+           </rect>
+          </property>
+          <property name="suffix">
+           <string>0</string>
+          </property>
+          <property name="decimals">
+           <number>3</number>
+          </property>
+          <property name="minimum">
+           <double>0.000000000000000</double>
+          </property>
+          <property name="maximum">
+           <double>1000.000000000000000</double>
+          </property>
+          <property name="singleStep">
+           <double>0.010000000000000</double>
+          </property>
+          <property name="value">
+           <double>0.010000000000000</double>
+          </property>
+         </widget>
+         <widget class="QLabel" name="label_32">
+          <property name="geometry">
+           <rect>
+            <x>20</x>
+            <y>80</y>
+            <width>421</width>
+            <height>16</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>Standard Dev for Covariance</string>
+          </property>
+         </widget>
+        </widget>
+       </widget>
+       <widget class="QWidget" name="pointToPoint">
+        <widget class="QGroupBox" name="groupBox_23">
+         <property name="geometry">
+          <rect>
+           <x>10</x>
+           <y>10</y>
+           <width>561</width>
+           <height>71</height>
+          </rect>
+         </property>
+         <property name="title">
+          <string>Options</string>
+         </property>
+         <widget class="QLabel" name="medianDistOutlierTitle_2">
+          <property name="geometry">
+           <rect>
+            <x>20</x>
+            <y>30</y>
+            <width>246</width>
+            <height>16</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>No Options Needed</string>
+          </property>
+         </widget>
+        </widget>
+       </widget>
+       <widget class="QWidget" name="pointToPointCov">
+        <widget class="QGroupBox" name="groupBox_24">
+         <property name="geometry">
+          <rect>
+           <x>10</x>
+           <y>0</y>
+           <width>631</width>
+           <height>111</height>
+          </rect>
+         </property>
+         <property name="title">
+          <string>Options</string>
+         </property>
+         <widget class="QDoubleSpinBox" name="ppointStdDevCov">
+          <property name="geometry">
+           <rect>
+            <x>10</x>
+            <y>50</y>
+            <width>101</width>
+            <height>22</height>
+           </rect>
+          </property>
+          <property name="suffix">
+           <string>0</string>
+          </property>
+          <property name="decimals">
+           <number>3</number>
+          </property>
+          <property name="minimum">
+           <double>0.000000000000000</double>
+          </property>
+          <property name="maximum">
+           <double>1000.000000000000000</double>
+          </property>
+          <property name="singleStep">
+           <double>0.010000000000000</double>
+          </property>
+          <property name="value">
+           <double>0.010000000000000</double>
+          </property>
+         </widget>
+         <widget class="QLabel" name="label_33">
+          <property name="geometry">
+           <rect>
+            <x>10</x>
+            <y>30</y>
+            <width>421</width>
+            <height>16</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>Standard Dev for Covariance</string>
+          </property>
+         </widget>
+        </widget>
+       </widget>
+       <widget class="QWidget" name="pointToSimilarity">
+        <widget class="QGroupBox" name="groupBox_25">
+         <property name="geometry">
+          <rect>
+           <x>10</x>
+           <y>10</y>
+           <width>631</width>
+           <height>131</height>
+          </rect>
+         </property>
+         <property name="title">
+          <string>Options</string>
+         </property>
+         <widget class="QCheckBox" name="pSimilarityNormals">
+          <property name="geometry">
+           <rect>
+            <x>20</x>
+            <y>40</y>
+            <width>121</width>
+            <height>17</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>Use Existing Normals</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </widget>
+       </widget>
+      </widget>
+     </widget>
     </widget>
    </item>
    <item>
@@ -3187,15 +3643,32 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>minimizerType</sender>
+   <signal>currentIndexChanged(int)</signal>
+   <receiver>stackedMinimizer</receiver>
+   <slot>setCurrentIndex(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>391</x>
+     <y>73</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>386</x>
+     <y>246</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <buttongroups>
-  <buttongroup name="buttonGroup_5"/>
-  <buttongroup name="buttonGroup_8"/>
-  <buttongroup name="buttonGroup_3"/>
-  <buttongroup name="buttonGroup_4"/>
   <buttongroup name="buttonGroup_2"/>
+  <buttongroup name="buttonGroup_4"/>
+  <buttongroup name="buttonGroup_8"/>
+  <buttongroup name="buttonGroup_10"/>
   <buttongroup name="buttonGroup_7"/>
-  <buttongroup name="buttonGroup"/>
   <buttongroup name="buttonGroup_6"/>
+  <buttongroup name="buttonGroup_5"/>
+  <buttongroup name="buttonGroup"/>
+  <buttongroup name="buttonGroup_3"/>
  </buttongroups>
 </ui>
