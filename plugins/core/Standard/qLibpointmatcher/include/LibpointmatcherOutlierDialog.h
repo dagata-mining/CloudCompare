@@ -91,12 +91,14 @@ public:
 	//! return current filter tab widget
 	int getCurrentFilterTabWidget();
 
-	//!Outlier filters
+	//! Outlier filters
 	void acceptOutlierOption();
-	//!KD tree filters
+	//! KD tree filters
 	void acceptKdTreeOption();
-	//!Matcher Option
+	//! Minimizer Option
 	void acceptMinimizerOption();
+	//! Checker Option
+	void acceptCheckerOption();
 
 protected:
 
@@ -122,6 +124,7 @@ protected: //members
 	std::vector<bool> m_needNormalsRead;
 	std::vector<bool> m_useExistingNormalsRead;
 	std::shared_ptr<PM::DataPointsFilter> m_normalParams;
+	std::vector< std::shared_ptr<PM::TransformationChecker>> m_checkers;
 	QString m_currentFilterName;
 	int m_filterItemRef;
 	int m_filterItemRead;

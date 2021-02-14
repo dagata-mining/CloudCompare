@@ -437,6 +437,47 @@ void LibpointmatcherOutlierDialog::acceptOutlierOption()
 	}
 }
 
+void LibpointmatcherOutlierDialog::acceptCheckerOption() 
+{
+	std::shared_ptr<PM::TransformationChecker> checker;
+	if (enableIterationChecker->isChecked())
+	{
+		std::string iterationValue = std::to_string((int)round(iterationCheckerIter->value()));
+		checker = PM::get().TransformationCheckerRegistrar.create("CounterTransformationChecker", {
+			{"maxIterationCount",iterationValue}
+			});
+		m_checkers.push_back(checker);
+	}
+	if (enableDifferentialChecker->isChecked())
+	{
+		std::string minDiffRotErrValue = std::to_string(differentialCheckerRot->value());
+		std::string minDiffTransErrValue = std::to_string(differentialCheckerTrans->value());
+		std::string smoothLengthValue = std::to_string(differentialCheckerIter->value());
+		checker = PM::get().TransformationCheckerRegistrar.create("DifferentialTransformationChecker", {
+			{"minDiffRotErr",minDiffRotErrValue},
+			{"minDiffTransErr",minDiffTransErrValue},
+			{"smoothLength",smoothLengthValue}
+			});
+		m_checkers.push_back(checker);
+	}
+	if (enableMaxBoundChecker->isChecked())
+	{
+		std::string maxRotationNormValue = std::to_string(maxBoundCheckerRot->value());
+		std::string maxTranslationNormValue = std::to_string(maxBoundCheckerTrans->value());
+		checker = PM::get().TransformationCheckerRegistrar.create("DifferentialTransformationChecker", {
+			{"maxRotationNorm",maxRotationNormValue},
+			{"maxTranslationNorm",maxTranslationNormValue},
+			});
+		m_checkers.push_back(checker);
+	}
+	// Fall back to this if nothing is selected (40 iter default)
+	if (!enableMaxBoundChecker->isChecked() && !enableDifferentialChecker->isChecked() && !enableIterationChecker->isChecked())
+	{
+		checker = PM::get().TransformationCheckerRegistrar.create("CounterTransformationChecker");
+		m_checkers.push_back(checker);
+	}
+}
+
 void LibpointmatcherOutlierDialog::acceptFilterOptions(bool ref) 
 {
 	int indexFilter = Options->currentIndex();
