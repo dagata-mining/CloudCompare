@@ -21,7 +21,7 @@
    <item>
     <widget class="QTabWidget" name="filterTabWidget">
      <property name="currentIndex">
-      <number>7</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="filterParams">
       <property name="accessibleName">
@@ -133,7 +133,7 @@
         </rect>
        </property>
        <property name="currentIndex">
-        <number>8</number>
+        <number>9</number>
        </property>
        <widget class="QWidget" name="MaximumDensityFilter">
         <widget class="QGroupBox" name="groupBox">
@@ -1656,6 +1656,19 @@
        </property>
        <property name="text">
         <string>Add To Read</string>
+       </property>
+      </widget>
+      <widget class="QCheckBox" name="noFilterSubsampling">
+       <property name="geometry">
+        <rect>
+         <x>200</x>
+         <y>400</y>
+         <width>161</width>
+         <height>17</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>No Filter Subsampling</string>
        </property>
       </widget>
      </widget>
@@ -4012,6 +4025,9 @@
     <layout class="QHBoxLayout" name="horizontalLayout_7">
      <item>
       <widget class="QDialogButtonBox" name="buttonBox">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
        </property>

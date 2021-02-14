@@ -182,10 +182,22 @@ void Libpointmatcher::doActionICP()
 		//process cancelled by the user
 		return;
 	}
+	if (!dlgICP.nofilterAllowed())
+	{
+		if(dlgICP.getFiltersRef().size() < 1 || dlgICP.getFiltersRead().size() < 1)
+		{
+			m_app->dispToConsole(QString("No Subsampling filters selected, enable no filter option or add filters "), ccMainAppInterface::ERR_CONSOLE_MESSAGE);
+			return;
+		}
+	}
 	// verify on which widget you are
 
 
 	dlgICP.acceptNormalOptions();
+	dlgICP.acceptOutlierOption();
+	dlgICP.acceptKdTreeOption();
+	dlgICP.acceptMinimizerOption();
+	dlgICP.acceptCheckerOption();
 
 
 	QString errorMessage;
@@ -193,16 +205,11 @@ void Libpointmatcher::doActionICP()
 	QProgressDialog pDlg("Please wait...", "Cancel", 0, 0);
 	pDlg.setWindowTitle("Libpointmatcher");
 	pDlg.show();
-	for (int i = 0; i < m_selectedEntities.size(); i++) {
-		if (!pDlg.wasCanceled()) {
-			if (!LibpointmatcherProcess::ICP(dlgICP, m_selectedEntities[i], errorMessage, m_app->getMainWindow(), m_app))
-			{
-				m_app->dispToConsole(errorMessage, ccMainAppInterface::ERR_CONSOLE_MESSAGE);
-			}
-		}
-		else
+
+	if (!pDlg.wasCanceled()) {
+		if (!LibpointmatcherProcess::ICP(dlgICP, errorMessage, m_app->getMainWindow(), m_app))
 		{
-			break;
+			m_app->dispToConsole(errorMessage, ccMainAppInterface::ERR_CONSOLE_MESSAGE);
 		}
 	}
 	if (m_app)

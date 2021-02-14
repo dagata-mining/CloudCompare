@@ -38,7 +38,6 @@ public:
 						QWidget* parentWidget/*=nullptr*/,
 						ccMainAppInterface* app/*=nullptr*/);
 	static bool ICP(const LibpointmatcherOutlierDialog& dlg,
-		ccHObject* entity,
 		QString& errorMessage,
 		QWidget* parentWidget/*=nullptr*/,
 		ccMainAppInterface* app/*=nullptr*/);

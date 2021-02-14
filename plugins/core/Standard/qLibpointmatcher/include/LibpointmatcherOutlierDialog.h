@@ -55,18 +55,52 @@ public:
 	//! Do we need normals to be calculated at index
 	bool getNeedNormalsRef(int i) const { return m_needNormalsRef[i]; }
 
+	//! Do we need normals to be calculated at index
+	bool getNeedNormalsRead(int i) const { return m_needNormalsRead[i]; }
+
+	//! No filter subsampling allowed
+	bool nofilterAllowed() const { return m_noFilter; }
 
 	//! Verify is we need at least normals one time
-	bool needAtLeastOneNormalRef() const { return std::all_of(m_needNormalsRef.begin(), m_needNormalsRef.end(), [](bool v) { return v; }); };
+	bool needAtLeastOneNormalRef() const { return std::all_of(m_needNormalsRef.begin(), m_needNormalsRef.end(), [](bool v) { return v; }); }
 
 	//! Verify is we import normals one time
-	bool useAtLeastOneNormal() const { return std::all_of(m_useExistingNormalsRef.begin(), m_useExistingNormalsRef.end(), [](bool v) { return v; }); };
-	
+	bool useAtLeastOneNormalRef() const { return std::all_of(m_useExistingNormalsRef.begin(), m_useExistingNormalsRef.end(), [](bool v) { return v; }); }
+
+	//! Verify is we need at least normals one time
+	bool needAtLeastOneNormalRead() const { return std::all_of(m_needNormalsRead.begin(), m_needNormalsRead.end(), [](bool v) { return v; }); };
+
+	//! Verify is we import normals one time
+	bool useAtLeastOneNormalRead() const { return std::all_of(m_useExistingNormalsRead.begin(), m_useExistingNormalsRead.end(), [](bool v) { return v; }); }
+
+	//! Verify if ref cloud need normals for minimizers or outliers 
+	bool refCloudNeedNormalsICP() const { return m_refNeedsNormalICP; }
+
+	//! Verify if read cloud need normals for minimizers or outliers 
+	bool readCloudNeedNormalsICP() const { return m_readNeedsNormalICP; }
+
 	//! Returns vector of parameters
 	std::vector< std::shared_ptr<PM::DataPointsFilter>> getFiltersRef() const { return m_filtersRef; }
 
-	std::shared_ptr<PM::DataPointsFilter> getNormalParams() const {return m_normalParams;}
-	
+	//! Returns vector of parameters
+	std::vector< std::shared_ptr<PM::DataPointsFilter>> getFiltersRead() const { return m_filtersRead; }
+
+	//! Return normal Parameters
+	std::shared_ptr<PM::DataPointsFilter> getNormalParams() const { return m_normalParams; }
+
+	//! Return kdTreeParams
+	std::shared_ptr<PM::Matcher> getKdTree() const { return m_kdTree; }
+
+	//! Return outlierFilter
+	std::shared_ptr<PM::OutlierFilter> getOutlierFilter() const { return m_outlierFilter; }
+
+
+	//! Return errorMinimizer
+	std::shared_ptr<PM::ErrorMinimizer> getErrorMinimizer() const { return m_errorMinimizer; }
+
+	//! Return Transformation Checkers
+	std::vector< std::shared_ptr<PM::TransformationChecker>> getCheckers() const { return m_checkers; }
+
 	//! change the filter options
 	void acceptFilterOptions(bool);
 	//! changing the selected item on the filters list disabling and enabling position change and deleting filter
@@ -106,6 +140,9 @@ public:
 	//! Swap clouds
 	void swapClouds();
 
+	//! No Filter
+	void noFilter();
+
 protected:
 
 	void setCloud1Visibility(bool);
@@ -132,10 +169,21 @@ protected: //members
 	std::vector<bool> m_useExistingNormalsRead;
 	std::shared_ptr<PM::DataPointsFilter> m_normalParams;
 	std::vector< std::shared_ptr<PM::TransformationChecker>> m_checkers;
+	bool m_refNeedsNormalICP;
+	bool m_readNeedsNormalICP;
+	
 	QString m_currentFilterName;
 	int m_filterItemRef;
 	int m_filterItemRead;
 
+	bool m_refFilterInit;
+	bool m_readFilterInit;
+	bool m_noFilter;
+
+	std::shared_ptr<PM::Matcher> m_kdTree;
+	std::shared_ptr<PM::OutlierFilter> m_outlierFilter;
+	std::shared_ptr<PM::ErrorMinimizer> m_errorMinimizer;
+	
 };
 
 #endif 

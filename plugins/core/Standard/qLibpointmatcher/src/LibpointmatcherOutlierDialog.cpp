@@ -66,6 +66,11 @@ LibpointmatcherOutlierDialog::LibpointmatcherOutlierDialog(ccPointCloud* cloud1,
 	, m_filterItemRead(0)
 	, m_cloudRef(nullptr)
 	, m_cloudRead(nullptr)
+	, m_refFilterInit(false)
+	, m_readFilterInit(false)
+	, m_noFilter(false)
+	, m_refNeedsNormalICP(false)
+	, m_kdTree(nullptr)
 {
 
 	setupUi(this);
@@ -85,6 +90,7 @@ LibpointmatcherOutlierDialog::LibpointmatcherOutlierDialog(ccPointCloud* cloud1,
 	connect(deleteOneFilterRead, &QToolButton::clicked, this, &LibpointmatcherOutlierDialog::removeFromFilterListRead);
 	// Clouds
 	connect(swapCloudsButton, &QToolButton::clicked, this, &LibpointmatcherOutlierDialog::swapClouds);
+	connect(noFilterSubsampling, &QCheckBox::clicked, this, &LibpointmatcherOutlierDialog::noFilter);
 
 	// Set up on initialization 
 	listFiltersRef->setCurrentRow(0);
@@ -116,18 +122,24 @@ void LibpointmatcherOutlierDialog::addToFilterListRef() {
 
 	acceptFilterOptions(true);
 	listFiltersRef->addItem(m_currentFilterName);
+	m_refFilterInit = true;
 
 
 };
+void LibpointmatcherOutlierDialog::noFilter()
+{
+	m_noFilter = noFilterSubsampling->isChecked();
+}
 
 void LibpointmatcherOutlierDialog::addToFilterListRead() {
 	if (filterTabWidget->currentIndex() != 0)
 	{
 		return;
-	};
+	}
 
 	acceptFilterOptions(false);
 	listFiltersRead->addItem(m_currentFilterName);
+	m_readFilterInit = true;
 
 
 };
@@ -307,16 +319,16 @@ void LibpointmatcherOutlierDialog::acceptNormalOptions()
 
 void LibpointmatcherOutlierDialog::acceptOutlierOption() 
 {
-	std::shared_ptr<PM::OutlierFilter> outlier;
+	
 	int indexOutlier = outlierType->currentIndex();
-	bool outlierNeedNormals = false;
+
 
 	switch (indexOutlier) {
 	
 	case 0:
 	{
 		std::string maxDistValue = std::to_string(maxDistOutlier->value());
-		outlier = PM::get().OutlierFilterRegistrar.create("MaxDistOutlierFilter",
+		m_outlierFilter = PM::get().OutlierFilterRegistrar.create("MaxDistOutlierFilter",
 			{
 				{"maxDist",maxDistValue},
 			}
@@ -326,7 +338,7 @@ void LibpointmatcherOutlierDialog::acceptOutlierOption()
 	case 1:
 	{
 		std::string minDistValue = std::to_string(minDistOutlier->value());
-		outlier = PM::get().OutlierFilterRegistrar.create("MinDistOutlierFilter",
+		m_outlierFilter = PM::get().OutlierFilterRegistrar.create("MinDistOutlierFilter",
 			{
 				{"minDist",minDistValue},
 			}
@@ -336,7 +348,7 @@ void LibpointmatcherOutlierDialog::acceptOutlierOption()
 	case 2:
 	{
 		std::string factorValue = std::to_string(medianDistOutlier->value());
-		outlier = PM::get().OutlierFilterRegistrar.create("MedianDistOutlierFilter",
+		m_outlierFilter = PM::get().OutlierFilterRegistrar.create("MedianDistOutlierFilter",
 			{
 				{"factor",factorValue},
 			}
@@ -346,7 +358,7 @@ void LibpointmatcherOutlierDialog::acceptOutlierOption()
 	case 3:
 	{
 		std::string ratioValue = std::to_string(trimmedOutlierRatio->value());
-		outlier = PM::get().OutlierFilterRegistrar.create("TrimmedDistOutlierFilter",
+		m_outlierFilter = PM::get().OutlierFilterRegistrar.create("TrimmedDistOutlierFilter",
 			{
 				{"ratio",ratioValue},
 			}
@@ -358,7 +370,7 @@ void LibpointmatcherOutlierDialog::acceptOutlierOption()
 		std::string minRatioValue = std::to_string(varTrimmedOutlierMin->value());
 		std::string maxRatioValue = std::to_string(varTrimmedOutlierMax->value());
 		std::string lamdaValue = std::to_string(varTrimmedOutlierLambda->value());
-		outlier = PM::get().OutlierFilterRegistrar.create("VarTrimmedDistOutlierFilter",
+		m_outlierFilter = PM::get().OutlierFilterRegistrar.create("VarTrimmedDistOutlierFilter",
 			{
 				{"minRatio",minRatioValue},
 				{"maxRatio",maxRatioValue},
@@ -371,12 +383,13 @@ void LibpointmatcherOutlierDialog::acceptOutlierOption()
 	{
 		const double halfC = M_PI / 180;
 		std::string maxAngleValue = std::to_string(surfaceOutlierAngle->value()*halfC);
-		outlier = PM::get().OutlierFilterRegistrar.create("SurfaceNormalOutlierFilter",
+		m_outlierFilter = PM::get().OutlierFilterRegistrar.create("SurfaceNormalOutlierFilter",
 			{
 				{"maxAngle",maxAngleValue},	
 			}
 		);
-		outlierNeedNormals = true;
+		m_refNeedsNormalICP = true;
+		m_readNeedsNormalICP = true;
 		break;
 	}
 	case 6:
@@ -420,10 +433,10 @@ void LibpointmatcherOutlierDialog::acceptOutlierOption()
 		if (robustOutlierDistancePlane->isChecked()) 
 		{ 
 			distanceTypeValue = "point2plane"; 
-			outlierNeedNormals = true;
+			m_refNeedsNormalICP = true;
 		}
 
-		outlier = PM::get().OutlierFilterRegistrar.create("RobustOutlierFilter",
+		m_outlierFilter = PM::get().OutlierFilterRegistrar.create("RobustOutlierFilter",
 			{
 				{"robustFct",robustFctValue},
 				{"tuning",tuningValue},
@@ -436,7 +449,7 @@ void LibpointmatcherOutlierDialog::acceptOutlierOption()
 	}
 	default: 
 	{
-		outlier = PM::get().OutlierFilterRegistrar.create("NullOutlierFilter");
+		m_outlierFilter = PM::get().OutlierFilterRegistrar.create("NullOutlierFilter");
 		break;
 	}
 	}
@@ -744,7 +757,6 @@ void LibpointmatcherOutlierDialog::acceptFilterOptions(bool ref)
 }
 void LibpointmatcherOutlierDialog::acceptKdTreeOption()
 {
-	std::shared_ptr<PM::Matcher> kdTree;
 
 	std::string epsilonValue = std::to_string((int)round(kdTreeEpsilon->value()));
 	std::string knnValue = std::to_string((int)round(kdTreeKnn->value()));
@@ -754,7 +766,7 @@ void LibpointmatcherOutlierDialog::acceptKdTreeOption()
 	if (kdTreeTree->isChecked()) { searchTypeValue = "1"; }
 	if (kdTreeMaxDist->value() < 0.001) { maxDistValue = "inf"; }
 
-	kdTree = PM::get().MatcherRegistrar.create(
+	m_kdTree = PM::get().MatcherRegistrar.create(
 		"KDTreeMatcher",
 		{
 			{"knn", knnValue},
@@ -767,7 +779,6 @@ void LibpointmatcherOutlierDialog::acceptKdTreeOption()
 void LibpointmatcherOutlierDialog::acceptMinimizerOption()
 {
 	int indexMinimizer = minimizerType->currentIndex();
-	std::shared_ptr<PM::ErrorMinimizer> errorMinimizer;
 	bool useExistingNormals=true;
 	bool needNormals=false;
 
@@ -779,7 +790,7 @@ void LibpointmatcherOutlierDialog::acceptMinimizerOption()
 		std::string pplaneforce4DOFValue = "0";
 		if (pplaneforce4DOF->isChecked()){ pplaneforce4DOFValue = "1"; }
 		if (pplaneforce2D->isChecked()) { pplaneforce2DValue = "1"; }
-		errorMinimizer =
+		m_errorMinimizer =
 			PM::get().ErrorMinimizerRegistrar.create("PointToPlaneErrorMinimizer", {
 				{"force2D",pplaneforce2DValue},
 				{"force4DOF",pplaneforce4DOFValue} 
@@ -787,7 +798,7 @@ void LibpointmatcherOutlierDialog::acceptMinimizerOption()
 				);
 		// Reference Cloud will need normals
 		if (!pplaneNormals->isChecked()) { useExistingNormals = false; }
-		needNormals = true;
+		m_refNeedsNormalICP = true;
 		break;
 	}
 	case 1:
@@ -798,7 +809,7 @@ void LibpointmatcherOutlierDialog::acceptMinimizerOption()
 		if (pplaneforce2DCov->isChecked()) { pplaneforce2DValue = "1"; }
 		std::string sensorStdDevValue = std::to_string(pplaneStdDevCov->value());
 
-		errorMinimizer =
+		m_errorMinimizer =
 			PM::get().ErrorMinimizerRegistrar.create("PointToPlaneWithCovErrorMinimizer", {
 				{"force2D",pplaneforce2DValue},
 				{"force4DOF",pplaneforce4DOFValue},
@@ -807,20 +818,20 @@ void LibpointmatcherOutlierDialog::acceptMinimizerOption()
 		);
 		// Reference Cloud will need normals
 		if (!pplaneNormalsCov->isChecked()) { useExistingNormals = false; }
-		needNormals = true;
+		m_refNeedsNormalICP = true;
 		break;
 	}
 	case 2:
 	{
 
-		errorMinimizer =
+		m_errorMinimizer =
 			PM::get().ErrorMinimizerRegistrar.create("PointToPointErrorMinimizer");
 		break;
 	}
 	case 3:
 	{
 		std::string sensorStdDevValue = std::to_string(ppointStdDevCov->value());
-		errorMinimizer =
+		m_errorMinimizer =
 			PM::get().ErrorMinimizerRegistrar.create("PointToPointWithCovErrorMinimizer", {
 				{"sensorStdDev",sensorStdDevValue}
 				}
@@ -830,11 +841,11 @@ void LibpointmatcherOutlierDialog::acceptMinimizerOption()
 	case 4:
 	{
 
-		errorMinimizer =
+		m_errorMinimizer =
 			PM::get().ErrorMinimizerRegistrar.create("PointToPointSimilarityErrorMinimizer");
 		// Reference Cloud will need normals, the cloud will scaled
 		if (!pSimilarityNormals->isChecked()) { useExistingNormals = false; }
-		needNormals = true;
+		m_refNeedsNormalICP = true;
 		break;
 	}
 

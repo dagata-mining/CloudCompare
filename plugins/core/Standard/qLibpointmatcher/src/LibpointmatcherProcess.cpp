@@ -511,11 +511,125 @@ bool LibpointmatcherProcess::Subsample(const LibpointmatcherDialog& dlg, ccHObje
 	return !error;
 }
 
-bool LibpointmatcherProcess::ICP(const LibpointmatcherOutlierDialog& dlg, ccHObject* entity, QString& errorMessage, QWidget* parentWidget/*=nullptr*/, ccMainAppInterface* app/*=nullptr*/)
+bool LibpointmatcherProcess::ICP(const LibpointmatcherOutlierDialog& dlg, QString& errorMessage, QWidget* parentWidget/*=nullptr*/, ccMainAppInterface* app/*=nullptr*/)
 {
+	errorMessage.clear();
 
+	//get the clouds in the right order
+	if (!dlg.getCloudRead()->isA(CC_TYPES::POINT_CLOUD) && !dlg.getCloudRef()->isA(CC_TYPES::POINT_CLOUD))
+	{
+		assert(false);
+		return false;
+	}
+	//start the job
+	bool error = false;
+
+	//Normals checking
+	bool refHasNormalDescriptors;
+	bool readHasNormalDescriptors;
+
+	//Transforming to libpointmatcher format
+	DP convertedCloudRead;
+	DP convertedCloudRef;
+	if (dlg.getCloudRead()->hasNormals() && dlg.needAtLeastOneNormalRead() && dlg.useAtLeastOneNormalRead())
+	{
+		//Has Normals and will be added
+		convertedCloudRead = LibpointmatcherTools::ccNormalsToPointMatcher(dlg.getCloudRead());
+		readHasNormalDescriptors = true;
+	}
+	else
+	{
+		convertedCloudRead = LibpointmatcherTools::ccToPointMatcher(dlg.getCloudRead());
+		readHasNormalDescriptors = false;
+
+	}
+
+	if (dlg.getCloudRef()->hasNormals() && dlg.needAtLeastOneNormalRef() && dlg.useAtLeastOneNormalRef())
+	{
+		//Has Normals and will be added
+		convertedCloudRef = LibpointmatcherTools::ccNormalsToPointMatcher(dlg.getCloudRef());
+		refHasNormalDescriptors = true;
+	}
+	else
+	{
+		convertedCloudRef = LibpointmatcherTools::ccToPointMatcher(dlg.getCloudRef());
+		refHasNormalDescriptors = false;
+
+	}
+
+	// Apply Chain 
+	PM::ICP icp;
+	// Filters
+	// Ref
+	bool refHasNormalsDescriptorsIter=false;
+	for (int i = 0; i < dlg.getFiltersRef().size(); i++) {
+		if (dlg.getNeedNormalsRef(i) && !refHasNormalDescriptors)
+		{
+			//Enable Surface Creating 
+			icp.referenceDataPointsFilters.push_back(dlg.getNormalParams());
+			// Prevent from redoing the surface creating normals on the next iteration
+			refHasNormalsDescriptorsIter = true;
+		}
+		icp.referenceDataPointsFilters.push_back(dlg.getFiltersRef()[i]);
+	}
+	// Because of the algorithm we need more than simple normals with descriptors such as densities, eigen etc.. 
+	if (!refHasNormalsDescriptorsIter && dlg.refCloudNeedNormalsICP()) {
+		icp.referenceDataPointsFilters.push_back(dlg.getNormalParams());
+	}
+
+	// Read
+	bool readHasNormalsDescriptorsIter = false;
 	
-	return false;
+	for (int i = 0; i < dlg.getFiltersRead().size(); i++) {
+		if (dlg.getNeedNormalsRead(i) && !readHasNormalDescriptors)
+		{
+			//Enable Surface Creating 
+			icp.readingDataPointsFilters.push_back(dlg.getNormalParams());
+			// Prevent from redoing the surface creating normals on the next iteration
+			readHasNormalsDescriptorsIter = true;
+		}
+		icp.readingDataPointsFilters.push_back(dlg.getFiltersRead()[i]);
+	}
+	// Because of the algorithm we need more than simple normals with descriptors such as densities, eigen etc.. 
+	if (!readHasNormalsDescriptorsIter && dlg.readCloudNeedNormalsICP()) {
+		icp.readingDataPointsFilters.push_back(dlg.getNormalParams());
+	}
+
+	//KD Tree Matcher
+	icp.matcher = dlg.getKdTree();
+
+	//Outlier Filter
+	icp.outlierFilters.push_back(dlg.getOutlierFilter());
+
+	// Error Minimizer
+	icp.errorMinimizer = dlg.getErrorMinimizer();
+
+	// Tranformation Checkers
+	for (int i=0;i < dlg.getCheckers().size();i++)
+	{
+		icp.transformationCheckers.push_back(dlg.getCheckers()[i]);
+	}
+
+	// Apply the transformation
+	try
+	{
+		PM::TransformationParameters T = icp(convertedCloudRead, convertedCloudRef); //cause an exception 
+		QString trans;
+		for (int i = 0; i < 4; i++) 
+		{
+			trans.append(QString::number(T(i, 0)) + " " + QString::number(T(i, 1)) + " " + QString::number(T(i, 2)) + " " + QString::number(T(i, 3)) + "/n");
+		}
+		ccLog::Print(QString(trans));
+	}
+
+	catch (std::string e)
+	{
+		ccLog::Error(e.c_str());
+		errorMessage = "Failed to compute!";
+		error = true;
+	}
+	
+	return !error;
 }
 
 
