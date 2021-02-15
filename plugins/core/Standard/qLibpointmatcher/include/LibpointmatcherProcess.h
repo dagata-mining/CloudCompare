@@ -23,6 +23,7 @@
 #include "LibpointmatcherOutlierDialog.h"
 //qCC
 #include "ccMainAppInterface.h"
+#include "ccStdPluginInterface.h"
 
 class ccMainAppInterface;
 
@@ -41,6 +42,7 @@ public:
 		QString& errorMessage,
 		QWidget* parentWidget/*=nullptr*/,
 		ccMainAppInterface* app/*=nullptr*/);
+	
 
 };
 

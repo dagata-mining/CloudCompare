@@ -1045,7 +1045,7 @@ void MainWindow::doActionApplyTransformation()
 	applyTransformation(transMat);
 }
 
-void MainWindow::applyTransformation(const ccGLMatrixd& mat)
+void MainWindow::applyTransformation(const ccGLMatrixd& mat )
 {
 	//if the transformation is partly converted to global shift/scale
 	bool updateGlobalShiftAndScale = false;
@@ -1214,6 +1214,8 @@ void MainWindow::applyTransformation(const ccGLMatrixd& mat)
 
 	refreshAll();
 }
+
+
 
 typedef std::pair<ccHObject*, ccGenericPointCloud*> EntityCloudAssociation;
 void MainWindow::doActionApplyScale()

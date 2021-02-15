@@ -26,6 +26,8 @@ if( PLUGIN_IO_LIBPOINTMATCHER )
 	target_link_libraries( ${PROJECT_NAME}
 	CCPluginAPI
 	QCC_GL_LIB
+	QCC_DB_LIB
+	QCC_IO_LIB
 	${libpointmatcher_LIBRARIES}
 	${Boost_LIBRARIES}
 	)

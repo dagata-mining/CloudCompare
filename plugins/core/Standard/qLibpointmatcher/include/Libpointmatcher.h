@@ -20,9 +20,14 @@
 
 //qCC
 #include "ccStdPluginInterface.h"
+#include "ccMainAppInterface.h"
 
 //qCC_db
 #include <ccHObject.h>
+
+#include <ccGlobalShiftManager.h>
+#include <ccShiftAndScaleCloudDlg.h>
+
 
 
 //! Libpointmatcher
@@ -47,7 +52,7 @@ public:
 	//inherited from ccStdPluginInterface
 	virtual void onNewSelection(const ccHObject::Container& selectedEntities) override;
 	virtual QList<QAction *> getActions() override;
-
+	void applyTransformationEntity(const ccGLMatrixd& mat, int entityIndex);
 
 private:
 	//! Subsample launching

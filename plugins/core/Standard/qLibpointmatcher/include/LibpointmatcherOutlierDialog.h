@@ -101,6 +101,9 @@ public:
 	//! Return Transformation Checkers
 	std::vector< std::shared_ptr<PM::TransformationChecker>> getCheckers() const { return m_checkers; }
 
+	//! Return The cloud index to be transformed
+	int getCurrentreadIndexEntity() const { return m_currentReadEntityIndex; }
+
 	//! change the filter options
 	void acceptFilterOptions(bool);
 	//! changing the selected item on the filters list disabling and enabling position change and deleting filter
@@ -175,6 +178,8 @@ protected: //members
 	QString m_currentFilterName;
 	int m_filterItemRef;
 	int m_filterItemRead;
+
+	int m_currentReadEntityIndex;
 
 	bool m_refFilterInit;
 	bool m_readFilterInit;

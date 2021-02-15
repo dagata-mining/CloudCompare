@@ -90,12 +90,170 @@ QList<QAction *> Libpointmatcher::getActions()
 							m_actionConvergence};
 }
 
+void Libpointmatcher::applyTransformationEntity(const ccGLMatrixd& mat, int entityIndex)
+{
+	//if the transformation is partly converted to global shift/scale
+	bool updateGlobalShiftAndScale = false;
+	double scaleChange = 1.0;
+	CCVector3d shiftChange(0, 0, 0);
+	ccGLMatrixd transMat = mat;
+
+	//we must backup 'm_selectedEntities' as removeObjectTemporarilyFromDBTree can modify it!
+	ccHObject::Container selectedEntities = m_selectedEntities;
+
+	//special case: the selected entity is a group
+	//if (selectedEntities.size() == 1 && selectedEntities.front()->isA(CC_TYPES::HIERARCHY_OBJECT))
+	//{
+	//	ccHObject* ent = selectedEntities.front();
+	//	m_selectedEntities.clear();
+	//	for (unsigned i=0; i<ent->getChildrenNumber(); ++i)
+	//	{
+	//		selectedEntities.push_back(ent->getChild(i));
+	//	}
+	//}
+
+	bool firstCloud = true;
+	ccHObject *entity = selectedEntities[entityIndex]; //warning, getSelectedEntites may change during this loop!
+
+		//we don't test primitives (it's always ok while the 'vertices lock' test would fail)
+	if (!entity->isKindOf(CC_TYPES::PRIMITIVE))
+	{
+		//specific test for locked vertices
+		bool lockedVertices;
+		ccGenericPointCloud* cloud = ccHObjectCaster::ToGenericPointCloud(entity, &lockedVertices);
+		if (cloud)
+		{
+
+
+			if (firstCloud)
+			{
+				//test if the translated cloud was already "too big"
+				//(in which case we won't bother the user about the fact
+				//that the transformed cloud will be too big...)
+				ccBBox localBBox = entity->getOwnBB();
+				CCVector3d Pl = CCVector3d::fromArray(localBBox.minCorner().u);
+				double Dl = localBBox.getDiagNormd();
+
+				//the cloud was alright
+				if (!ccGlobalShiftManager::NeedShift(Pl)
+					&& !ccGlobalShiftManager::NeedRescale(Dl))
+				{
+					//test if the translated cloud is not "too big" (in local coordinate space)
+					ccBBox rotatedBox = entity->getOwnBB() * transMat;
+					double Dl2 = rotatedBox.getDiagNorm();
+					CCVector3d Pl2 = CCVector3d::fromArray(rotatedBox.getCenter().u);
+
+					bool needShift = ccGlobalShiftManager::NeedShift(Pl2);
+					bool needRescale = ccGlobalShiftManager::NeedRescale(Dl2);
+
+					if (needShift || needRescale)
+					{
+						//existing shift information
+						CCVector3d globalShift = cloud->getGlobalShift();
+						double globalScale = cloud->getGlobalScale();
+
+						//we compute the transformation matrix in the global coordinate space
+						ccGLMatrixd globalTransMat = transMat;
+						globalTransMat.scaleRotation(1.0 / globalScale);
+						globalTransMat.setTranslation(globalTransMat.getTranslationAsVec3D() - globalShift);
+						//and we apply it to the cloud bounding-box
+						ccBBox rotatedBox = cloud->getOwnBB() * globalTransMat;
+						double Dg = rotatedBox.getDiagNorm();
+						CCVector3d Pg = CCVector3d::fromArray(rotatedBox.getCenter().u);
+
+						//ask the user the right values!
+						ccShiftAndScaleCloudDlg sasDlg(Pl2, Dl2, Pg, Dg);
+						sasDlg.showApplyAllButton(false);
+						sasDlg.showTitle(true);
+						sasDlg.setKeepGlobalPos(true);
+						sasDlg.showKeepGlobalPosCheckbox(false); //we don't want the user to mess with this!
+						sasDlg.showPreserveShiftOnSave(true);
+
+						//add "original" entry
+						int index = sasDlg.addShiftInfo(ccGlobalShiftManager::ShiftInfo("Original", globalShift, globalScale));
+						//sasDlg.setCurrentProfile(index);
+						//add "suggested" entry
+						CCVector3d suggestedShift = ccGlobalShiftManager::BestShift(Pg);
+						double suggestedScale = ccGlobalShiftManager::BestScale(Dg);
+						index = sasDlg.addShiftInfo(ccGlobalShiftManager::ShiftInfo("Suggested", suggestedShift, suggestedScale));
+						sasDlg.setCurrentProfile(index);
+						//add "last" entry (if available)
+						std::vector<ccGlobalShiftManager::ShiftInfo> lastInfos;
+						if (ccGlobalShiftManager::GetLast(lastInfos))
+						{
+							sasDlg.addShiftInfo(lastInfos);
+						}
+						//add entries from file (if any)
+						sasDlg.addFileInfo();
+
+						if (sasDlg.exec())
+						{
+							//store the shift for next time!
+							double newScale = sasDlg.getScale();
+							CCVector3d newShift = sasDlg.getShift();
+							ccGlobalShiftManager::StoreShift(newShift, newScale);
+
+							//get the relative modification to existing global shift/scale info
+							assert(cloud->getGlobalScale() != 0);
+							scaleChange = newScale / cloud->getGlobalScale();
+							shiftChange = newShift - cloud->getGlobalShift();
+
+							updateGlobalShiftAndScale = (scaleChange != 1.0 || shiftChange.norm2() != 0);
+
+							//update transformation matrix accordingly
+							if (updateGlobalShiftAndScale)
+							{
+								transMat.scaleRotation(scaleChange);
+								transMat.setTranslation(transMat.getTranslationAsVec3D() + newScale * shiftChange);
+							}
+						}
+						else if (sasDlg.cancelled())
+						{
+							ccLog::Warning("[ApplyTransformation] Process cancelled by user");
+							return;
+						}
+					}
+				}
+
+				firstCloud = false;
+			}
+
+			if (updateGlobalShiftAndScale)
+			{
+				//apply translation as global shift
+				cloud->setGlobalShift(cloud->getGlobalShift() + shiftChange);
+				cloud->setGlobalScale(cloud->getGlobalScale() * scaleChange);
+				const CCVector3d& T = cloud->getGlobalShift();
+				double scale = cloud->getGlobalScale();
+				ccLog::Warning(QString("[ApplyTransformation] Cloud '%1' global shift/scale information has been updated: shift = (%2,%3,%4) / scale = %5").arg(cloud->getName()).arg(T.x).arg(T.y).arg(T.z).arg(scale));
+			}
+		}
+	}
+
+	//we temporarily detach entity, as it may undergo
+	//"severe" modifications (octree deletion, etc.) --> see ccHObject::applyRigidTransformation
+	ccMainAppInterface::ccHObjectContext objContext = m_app->removeObjectTemporarilyFromDBTree(entity);
+	entity->setGLTransformation(ccGLMatrix(transMat.data()));
+	//DGM FIXME: we only test the entity own bounding box (and we update its shift & scale info) but we apply the transformation to all its children?!
+	entity->applyGLTransformation_recursive();
+	entity->prepareDisplayForRefresh_recursive();
+	m_app->putObjectBackIntoDBTree(entity, objContext);
+
+	 
+
+	ccLog::Print("[ApplyTransformation] Applied transformation matrix:");
+	ccLog::Print(transMat.toString(12, ' ')); //full precision
+	ccLog::Print("Hint: copy it (CTRL+C) and apply it - or its inverse - on any entity with the 'Edit > Apply transformation' tool");
+
+	m_app->refreshAll();
+}
+
 void Libpointmatcher::doActionFilter()
 {
 	//disclaimer accepted?
 	if (!DisclaimerDialog::show(m_app))
 		return;
-
+	
 	//m_app should have already been initialized by CC when plugin is loaded!
 	assert(m_app);
 	if (!m_app)
@@ -192,13 +350,13 @@ void Libpointmatcher::doActionICP()
 	}
 	// verify on which widget you are
 
-
 	dlgICP.acceptNormalOptions();
 	dlgICP.acceptOutlierOption();
 	dlgICP.acceptKdTreeOption();
 	dlgICP.acceptMinimizerOption();
 	dlgICP.acceptCheckerOption();
-
+	ccLog::Print(QString("After Checker"));
+	
 
 	QString errorMessage;
 	ccPointCloud* outputCloud = nullptr; //only necessary for the command line version in fact

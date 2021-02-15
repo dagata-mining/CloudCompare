@@ -37,6 +37,7 @@
 #include <ccNormalVectors.h>
 #include <ccScalarField.h>
 
+
 //Qt
 #include <QtGui>
 #include <QtCore>
@@ -435,6 +436,9 @@ void ComputeM3C2DistForPoint(unsigned index)
 		s_M3C2Params.processCanceled = true;
 	}
 }
+
+
+
 bool LibpointmatcherProcess::Subsample(const LibpointmatcherDialog& dlg, ccHObject* entity, QString& errorMessage, QWidget* parentWidget/*=nullptr*/, ccMainAppInterface* app/*=nullptr*/)
 {
 	errorMessage.clear();
@@ -528,6 +532,8 @@ bool LibpointmatcherProcess::ICP(const LibpointmatcherOutlierDialog& dlg, QStrin
 	bool refHasNormalDescriptors;
 	bool readHasNormalDescriptors;
 
+	ccLog::Print(QString("Prior To transforming to DP "));
+
 	//Transforming to libpointmatcher format
 	DP convertedCloudRead;
 	DP convertedCloudRef;
@@ -557,10 +563,13 @@ bool LibpointmatcherProcess::ICP(const LibpointmatcherOutlierDialog& dlg, QStrin
 
 	}
 
+
 	// Apply Chain 
 	PM::ICP icp;
 	// Filters
 	// Ref
+	ccLog::Print(QString("Prior Applying Chain"));
+
 	bool refHasNormalsDescriptorsIter=false;
 	for (int i = 0; i < dlg.getFiltersRef().size(); i++) {
 		if (dlg.getNeedNormalsRef(i) && !refHasNormalDescriptors)
@@ -609,17 +618,20 @@ bool LibpointmatcherProcess::ICP(const LibpointmatcherOutlierDialog& dlg, QStrin
 	{
 		icp.transformationCheckers.push_back(dlg.getCheckers()[i]);
 	}
+	// Inspectors Not useful but necessary for the ICP chain of Libpointmatcher
+	std::shared_ptr<PM::Inspector> nullInspect =
+		PM::get().InspectorRegistrar.create("NullInspector");
+	icp.inspector = nullInspect;
+	// Rigid Transformation, useless but necessary for the Libpointmatcher IP 
+	std::shared_ptr<PM::Transformation> rigidTrans =
+		PM::get().TransformationRegistrar.create("RigidTransformation");
+	icp.transformations.push_back(rigidTrans);
 
 	// Apply the transformation
+	PM::TransformationParameters T;
 	try
 	{
-		PM::TransformationParameters T = icp(convertedCloudRead, convertedCloudRef); //cause an exception 
-		QString trans;
-		for (int i = 0; i < 4; i++) 
-		{
-			trans.append(QString::number(T(i, 0)) + " " + QString::number(T(i, 1)) + " " + QString::number(T(i, 2)) + " " + QString::number(T(i, 3)) + "/n");
-		}
-		ccLog::Print(QString(trans));
+		T = icp(convertedCloudRead, convertedCloudRef); //cause an exception 
 	}
 
 	catch (std::string e)
@@ -628,8 +640,18 @@ bool LibpointmatcherProcess::ICP(const LibpointmatcherOutlierDialog& dlg, QStrin
 		errorMessage = "Failed to compute!";
 		error = true;
 	}
-	
+	QString trans;
+	for (int i = 0; i < 4; i++)
+	{
+		trans.append(QString::number(T(i, 0)) + " " + QString::number(T(i, 1)) + " " + QString::number(T(i, 2)) + " " + QString::number(T(i, 3)) + "\n");
+	}
+
+	ccGLMatrixd transformation = LibpointmatcherTools::convertingOutputMatrix(T);
+	Libpointmatcher::applyTransformationEntity(&transformation,dlg.getCurrentreadIndexEntity());
+
+	ccLog::Print(QString(trans));
 	return !error;
 }
+
 
 

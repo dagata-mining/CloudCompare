@@ -71,6 +71,7 @@ LibpointmatcherOutlierDialog::LibpointmatcherOutlierDialog(ccPointCloud* cloud1,
 	, m_noFilter(false)
 	, m_refNeedsNormalICP(false)
 	, m_kdTree(nullptr)
+	, m_currentReadEntityIndex(1)
 {
 
 	setupUi(this);
@@ -465,18 +466,20 @@ void LibpointmatcherOutlierDialog::acceptCheckerOption()
 			{"maxIterationCount",iterationValue}
 			});
 		m_checkers.push_back(checker);
+		ccLog::Print(QString("After Iteration checker"));
 	}
 	if (enableDifferentialChecker->isChecked())
 	{
 		std::string minDiffRotErrValue = std::to_string(differentialCheckerRot->value());
 		std::string minDiffTransErrValue = std::to_string(differentialCheckerTrans->value());
-		std::string smoothLengthValue = std::to_string(differentialCheckerIter->value());
+		std::string smoothLengthValue = std::to_string((int)round(differentialCheckerIter->value()));
 		checker = PM::get().TransformationCheckerRegistrar.create("DifferentialTransformationChecker", {
 			{"minDiffRotErr",minDiffRotErrValue},
 			{"minDiffTransErr",minDiffTransErrValue},
 			{"smoothLength",smoothLengthValue}
 			});
 		m_checkers.push_back(checker);
+		ccLog::Print(QString("After Differential checker"));
 	}
 	if (enableMaxBoundChecker->isChecked())
 	{
@@ -861,6 +864,7 @@ void LibpointmatcherOutlierDialog::setClouds(ccPointCloud* cloud1, ccPointCloud*
 	}
 	m_cloudRef = cloud1;
 	m_cloudRead = cloud2;
+	m_currentReadEntityIndex = 1;
 
 	refCloudName->setText(GetEntityName(cloud1));
 	readCloudName->setText(GetEntityName(cloud2));
@@ -880,6 +884,15 @@ void LibpointmatcherOutlierDialog::swapClouds()
 
 	refCloudName->setText(GetEntityName(m_cloudRef));
 	readCloudName->setText(GetEntityName(m_cloudRead));
+
+	if (m_currentReadEntityIndex == 0) 
+	{
+		m_currentReadEntityIndex = 1;
+	}
+	else
+	{
+		m_currentReadEntityIndex = 0; 
+	}
 }
 
 
