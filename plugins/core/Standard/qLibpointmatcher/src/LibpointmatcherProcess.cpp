@@ -20,6 +20,7 @@
 //local
 #include "LibpointmatcherTools.h"
 #include "LibpointmatcherDialog.h"
+#include "Libpointmatcher.h"
 
 //CCCoreLib
 #include <CloudSamplingTools.h>
@@ -515,7 +516,18 @@ bool LibpointmatcherProcess::Subsample(const LibpointmatcherDialog& dlg, ccHObje
 	return !error;
 }
 
-bool LibpointmatcherProcess::ICP(const LibpointmatcherOutlierDialog& dlg, QString& errorMessage, QWidget* parentWidget/*=nullptr*/, ccMainAppInterface* app/*=nullptr*/)
+ccGLMatrixd LibpointmatcherProcess::convertingOutputMatrix(Eigen::MatrixXf m)
+{
+	Vector3Tpl<double> X((double)m(0, 0), (double)m(1, 0), (double)m(2, 0));
+	Vector3Tpl<double> Y((double)m(0, 1), (double)m(1, 1), (double)m(2, 1));
+	Vector3Tpl<double> Z((double)m(0, 2), (double)m(1, 2), (double)m(2, 2));
+	Vector3Tpl<double> Tr((double)m(0, 3), (double)m(1, 3), (double)m(2, 3));
+	return ccGLMatrixd(X, Y, Z, Tr);
+
+}
+
+
+ccGLMatrixd& LibpointmatcherProcess::ICP(const LibpointmatcherOutlierDialog& dlg, QString& errorMessage, QWidget* parentWidget/*=nullptr*/, ccMainAppInterface* app/*=nullptr*/)
 {
 	errorMessage.clear();
 
@@ -523,7 +535,7 @@ bool LibpointmatcherProcess::ICP(const LibpointmatcherOutlierDialog& dlg, QStrin
 	if (!dlg.getCloudRead()->isA(CC_TYPES::POINT_CLOUD) && !dlg.getCloudRef()->isA(CC_TYPES::POINT_CLOUD))
 	{
 		assert(false);
-		return false;
+		return ccGLMatrixd();
 	}
 	//start the job
 	bool error = false;
@@ -646,11 +658,12 @@ bool LibpointmatcherProcess::ICP(const LibpointmatcherOutlierDialog& dlg, QStrin
 		trans.append(QString::number(T(i, 0)) + " " + QString::number(T(i, 1)) + " " + QString::number(T(i, 2)) + " " + QString::number(T(i, 3)) + "\n");
 	}
 
-	ccGLMatrixd transformation = LibpointmatcherTools::convertingOutputMatrix(T);
-	Libpointmatcher::applyTransformationEntity(&transformation,dlg.getCurrentreadIndexEntity());
+	ccGLMatrixd transformation = convertingOutputMatrix(T);
+	ccGLMatrixd& transi = transformation;
+	
 
 	ccLog::Print(QString(trans));
-	return !error;
+	return transi;
 }
 
 

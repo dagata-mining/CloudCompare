@@ -364,11 +364,10 @@ void Libpointmatcher::doActionICP()
 	pDlg.setWindowTitle("Libpointmatcher");
 	pDlg.show();
 
-	if (!pDlg.wasCanceled()) {
-		if (!LibpointmatcherProcess::ICP(dlgICP, errorMessage, m_app->getMainWindow(), m_app))
-		{
-			m_app->dispToConsole(errorMessage, ccMainAppInterface::ERR_CONSOLE_MESSAGE);
-		}
+	if (!pDlg.wasCanceled()) 
+	{
+		applyTransformationEntity(LibpointmatcherProcess::ICP(dlgICP, errorMessage, m_app->getMainWindow(), m_app),dlgICP.getCurrentreadIndexEntity());
+		
 	}
 	if (m_app)
 	{

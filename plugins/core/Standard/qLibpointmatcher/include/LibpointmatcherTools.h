@@ -120,9 +120,7 @@ public:
 	// Subsamples from Libpointmatcher
 	static DP filter(DP cloud, std::vector< std::shared_ptr<PM::DataPointsFilter>> filters, std::shared_ptr<PM::DataPointsFilter> normalParams, std::vector<bool> needNormals, bool hasNormalDescriptors );
 
-	// Transfrom T eigen matrix to a CCGLMatrix
-	static ccGLMatrixd convertingOutputMatrix(Eigen::MatrixXf matrix);
-
+	
 };
 
 #endif //Q_M3C2_TOOLS_HEADER

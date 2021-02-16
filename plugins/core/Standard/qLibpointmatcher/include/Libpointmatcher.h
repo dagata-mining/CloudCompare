@@ -52,13 +52,15 @@ public:
 	//inherited from ccStdPluginInterface
 	virtual void onNewSelection(const ccHObject::Container& selectedEntities) override;
 	virtual QList<QAction *> getActions() override;
-	void applyTransformationEntity(const ccGLMatrixd& mat, int entityIndex);
+	
 
 private:
 	//! Subsample launching
 	void doActionFilter();
 	//! ICP launching
 	void doActionICP();
+	//! Applying Transformation 
+	void applyTransformationEntity(const ccGLMatrixd& mat, int entityIndex);
 
 	//! Default action
 	QAction* m_actionFilter;

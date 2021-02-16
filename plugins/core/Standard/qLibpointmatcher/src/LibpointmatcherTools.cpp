@@ -987,14 +987,5 @@ DP  LibpointmatcherTools::filter(DP cloud, std::vector< std::shared_ptr<PM::Data
 
 	return cloud;
 }
-ccGLMatrixd LibpointmatcherTools::convertingOutputMatrix(Eigen::MatrixXf matrix)
-{
-	Eigen::MatrixXf m = matrix.cast <double>();
-	Vector3Tpl<double> X(m(0, 0), m(0, 0), m(0, 0));
-	Vector3Tpl<double> Y(m(0, 0), m(0, 0), m(0, 0));
-	Vector3Tpl<double> Z(m(0, 0), m(0, 0), m(0, 0));
-	Vector3Tpl<double> Tr(m(0, 0), m(0, 0), m(0, 0));
-	return ccGLMatrixd(X, Y, Z, Tr);
 
-}
 ;

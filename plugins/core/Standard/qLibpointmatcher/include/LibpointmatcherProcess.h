@@ -38,11 +38,14 @@ public:
 						QString& errorMessage,
 						QWidget* parentWidget/*=nullptr*/,
 						ccMainAppInterface* app/*=nullptr*/);
-	static bool ICP(const LibpointmatcherOutlierDialog& dlg,
+	static ccGLMatrixd& ICP(const LibpointmatcherOutlierDialog& dlg,
 		QString& errorMessage,
 		QWidget* parentWidget/*=nullptr*/,
 		ccMainAppInterface* app/*=nullptr*/);
 	
+	// Transfrom T eigen matrix to a CCGLMatrix
+	static ccGLMatrixd convertingOutputMatrix(Eigen::MatrixXf m);
+
 
 };
 
