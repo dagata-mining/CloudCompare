@@ -646,11 +646,12 @@ ccGLMatrixd& LibpointmatcherProcess::ICP(const LibpointmatcherOutlierDialog& dlg
 		T = icp(convertedCloudRead, convertedCloudRef); //cause an exception 
 	}
 
-	catch (std::string e)
+	catch (std::exception e)
 	{
-		ccLog::Error(e.c_str());
+		ccLog::Error(e.what());
 		errorMessage = "Failed to compute!";
 		error = true;
+		return ccGLMatrixd();
 	}
 	QString trans;
 	for (int i = 0; i < 4; i++)

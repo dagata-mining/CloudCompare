@@ -975,11 +975,10 @@ DP  LibpointmatcherTools::filter(DP cloud, std::vector< std::shared_ptr<PM::Data
 		list.apply(cloud); //cause an exception 
 	}
 
-	catch (std::string e)
+	catch (std::exception e)
 	{
-		ccLog::Print("catch");
 		DP cloudEmpty;
-		ccLog::Error(e.c_str());
+		ccLog::Error(e.what());
 		return cloudEmpty;
 	}
 	

@@ -46,7 +46,7 @@
         <item row="0" column="2">
          <widget class="QComboBox" name="filterType">
           <property name="currentIndex">
-           <number>1</number>
+           <number>2</number>
           </property>
           <item>
            <property name="text">
@@ -133,7 +133,7 @@
         </rect>
        </property>
        <property name="currentIndex">
-        <number>9</number>
+        <number>1</number>
        </property>
        <widget class="QWidget" name="MaximumDensityFilter">
         <widget class="QGroupBox" name="groupBox">
@@ -419,7 +419,7 @@
            <double>100.000000000000000</double>
           </property>
           <property name="value">
-           <double>1000.000000000000000</double>
+           <double>30000.000000000000000</double>
           </property>
          </widget>
          <widget class="QDoubleSpinBox" name="srandSeed">
@@ -1722,7 +1722,7 @@
               <double>1.000000000000000</double>
              </property>
              <property name="value">
-              <double>5.000000000000000</double>
+              <double>10.000000000000000</double>
              </property>
             </widget>
             <widget class="QLabel" name="normalsKnnTitle">
@@ -2015,7 +2015,7 @@
         <item row="0" column="2">
          <widget class="QComboBox" name="outlierType">
           <property name="currentIndex">
-           <number>0</number>
+           <number>3</number>
           </property>
           <item>
            <property name="text">
@@ -2085,6 +2085,9 @@
          <width>751</width>
          <height>291</height>
         </rect>
+       </property>
+       <property name="currentIndex">
+        <number>3</number>
        </property>
        <widget class="QWidget" name="MaxDistOutlier">
         <widget class="QGroupBox" name="groupBox_13">
@@ -2924,7 +2927,7 @@
          <double>1.000000000000000</double>
         </property>
         <property name="value">
-         <double>1.000000000000000</double>
+         <double>10.000000000000000</double>
         </property>
        </widget>
        <widget class="QLabel" name="kdTreeKnnTitle">
@@ -3171,7 +3174,7 @@
         </rect>
        </property>
        <property name="currentIndex">
-        <number>4</number>
+        <number>0</number>
        </property>
        <widget class="QWidget" name="pointToPlane">
         <widget class="QGroupBox" name="groupBox_21">
@@ -3624,7 +3627,7 @@
         <string>Use Iteration checker</string>
        </property>
        <property name="checked">
-        <bool>true</bool>
+        <bool>false</bool>
        </property>
       </widget>
       <widget class="QCheckBox" name="enableDifferentialChecker">
@@ -4146,14 +4149,14 @@
   </connection>
  </connections>
  <buttongroups>
-  <buttongroup name="buttonGroup"/>
-  <buttongroup name="buttonGroup_10"/>
   <buttongroup name="buttonGroup_2"/>
-  <buttongroup name="buttonGroup_5"/>
   <buttongroup name="buttonGroup_6"/>
-  <buttongroup name="buttonGroup_3"/>
+  <buttongroup name="buttonGroup_5"/>
   <buttongroup name="buttonGroup_8"/>
   <buttongroup name="buttonGroup_7"/>
+  <buttongroup name="buttonGroup"/>
+  <buttongroup name="buttonGroup_3"/>
   <buttongroup name="buttonGroup_4"/>
+  <buttongroup name="buttonGroup_10"/>
  </buttongroups>
 </ui>
