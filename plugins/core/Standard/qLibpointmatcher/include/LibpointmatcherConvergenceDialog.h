@@ -39,7 +39,7 @@ class LibpointmatcherConvergenceDialog : public QDialog, public Ui::Libpointmatc
 public:
 
 	//! Default constructor
-	LibpointmatcherConvergenceDialog(ccPointCloud* cloud1, ccPointCloud* cloud2, ccMainAppInterface* app);
+	LibpointmatcherConvergenceDialog(std::vector<ccHObject*> entities, ccMainAppInterface* app);
 
 	//! Returns cloud #1
 	ccPointCloud* getCloudRef() const { return m_cloudRef; }
@@ -138,21 +138,24 @@ public:
 	//! Checker Option
 	void acceptCheckerOption();
 
-	//! setclouds
-	void setClouds(ccPointCloud* cloud1, ccPointCloud* cloud2);
+
 	//! Swap clouds
 	void swapClouds();
 
 	//! No Filter
 	void noFilter();
 
+	//! Init Slice list
+	void initSliceList(std::vector<ccHObject*> entities);
+
 protected:
 
 	void setCloud1Visibility(bool);
 	void setCloud2Visibility(bool);
-
-
-	
+	void verifySliceEnbaling();
+	void changeSlicePositionUp();
+	void changeSlicePositionDown();
+	void removeSlice();
 
 
 protected: //members
@@ -185,6 +188,7 @@ protected: //members
 	bool m_readFilterInit;
 	bool m_noFilter;
 
+	std::vector<ccPointCloud*> m_sliceList;
 	std::shared_ptr<PM::Matcher> m_kdTree;
 	std::shared_ptr<PM::OutlierFilter> m_outlierFilter;
 	std::shared_ptr<PM::ErrorMinimizer> m_errorMinimizer;

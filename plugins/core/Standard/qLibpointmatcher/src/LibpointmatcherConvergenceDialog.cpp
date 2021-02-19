@@ -55,7 +55,7 @@ static QString GetEntityName(ccHObject* obj)
 
 
 
-LibpointmatcherConvergenceDialog::LibpointmatcherConvergenceDialog(ccPointCloud* cloud1, ccPointCloud* cloud2, ccMainAppInterface* app)
+LibpointmatcherConvergenceDialog::LibpointmatcherConvergenceDialog(std::vector<ccHObject*> entities, ccMainAppInterface* app)
 	: QDialog(app ? app->getMainWindow() : nullptr)
 	, Ui::LibpointmatcherConvergenceDialog()
 	, m_app(app)
@@ -90,15 +90,20 @@ LibpointmatcherConvergenceDialog::LibpointmatcherConvergenceDialog(ccPointCloud*
 	connect(switchUpFilterRead, &QToolButton::clicked, this, &LibpointmatcherConvergenceDialog::changeFilterPositionUpRead);
 	connect(deleteOneFilterRead, &QToolButton::clicked, this, &LibpointmatcherConvergenceDialog::removeFromFilterListRead);
 	// Clouds
+	connect(switchUpSliceButton, &QToolButton::clicked, this, &LibpointmatcherConvergenceDialog::changeSlicePositionUp);
+	connect(switchDownSliceButton, &QToolButton::clicked, this, &LibpointmatcherConvergenceDialog::changeSlicePositionDown);
+	connect(deleteOneSlice, &QToolButton::clicked, this, &LibpointmatcherConvergenceDialog::removeSlice);
 	connect(swapCloudsButton, &QToolButton::clicked, this, &LibpointmatcherConvergenceDialog::swapClouds);
 	connect(noFilterSubsampling, &QCheckBox::clicked, this, &LibpointmatcherConvergenceDialog::noFilter);
+	connect(slicesCloudContainer, &QListWidget::currentItemChanged, this, &LibpointmatcherConvergenceDialog::verifySliceEnbaling);
+	connect(slicesCloudContainer , &QListWidget::itemClicked, this, &LibpointmatcherConvergenceDialog::verifySliceEnbaling);
 
 	// Set up on initialization 
 	listFiltersRef->setCurrentRow(0);
 	selectingFilterItemRef();
 	listFiltersRead->setCurrentRow(0);
 	selectingFilterItemRead();
-	setClouds(cloud1, cloud2);
+	initSliceList(entities);
 }
 
 void LibpointmatcherConvergenceDialog::disableFilterListButtonsRef()
@@ -855,45 +860,126 @@ void LibpointmatcherConvergenceDialog::acceptMinimizerOption()
 	}
 
 }
-void LibpointmatcherConvergenceDialog::setClouds(ccPointCloud* cloud1, ccPointCloud* cloud2)
+void LibpointmatcherConvergenceDialog::initSliceList(std::vector<ccHObject*> entities)
 {
-	if (!cloud1 || !cloud2)
+	if (entities[0]->isA(CC_TYPES::POINT_CLOUD))
+	{
+		ccPointCloud* m_cloudRef = ccHObjectCaster::ToPointCloud(entities[0]);
+		refCloudName->addItem(GetEntityName(m_cloudRef));
+	}
+	else
 	{
 		assert(false);
 		return;
 	}
-	m_cloudRef = cloud1;
-	m_cloudRead = cloud2;
-	m_currentReadEntityIndex = 1;
+	for (int i = 1; i < entities.size(); i++)
+	{
+		if (entities[i]->isA(CC_TYPES::POINT_CLOUD)) 
+		{
+			ccPointCloud* tempCloud = ccHObjectCaster::ToPointCloud(entities[i]);
+			m_sliceList.push_back(tempCloud);
+			slicesCloudContainer->addItem(GetEntityName(tempCloud));
+		}
+	}
+	
+	slicesCloudContainer->setCurrentRow(0);
+	refCloudName->setCurrentRow(0);
+	verifySliceEnbaling();
+}
 
-	refCloudName->setText(GetEntityName(cloud1));
-	readCloudName->setText(GetEntityName(cloud2));
+void LibpointmatcherConvergenceDialog::removeSlice() {
+	int currentSlice = slicesCloudContainer->currentRow();
+	
+	if (m_sliceList.size() <= 1) {
+		return;
+	}
+
+	m_sliceList.erase(m_sliceList.begin() + currentSlice);
+
+
+	qDeleteAll(slicesCloudContainer->selectedItems());
+	slicesCloudContainer->setCurrentRow(0);
+
+	verifySliceEnbaling();
+
+
+};
+
+void LibpointmatcherConvergenceDialog::verifySliceEnbaling() 
+{
+	
+	switchUpSliceButton->setEnabled(true);
+	switchDownSliceButton->setEnabled(true);
+	deleteOneSlice->setEnabled(true);
+	if (m_sliceList.size() <= 1)
+	{
+		switchUpSliceButton ->setEnabled(false);
+		switchDownSliceButton->setEnabled(false);
+		deleteOneSlice->setEnabled(false);
+		
+	}
+	if (slicesCloudContainer->currentRow() == 0) 
+	{
+		switchUpSliceButton ->setEnabled(false);
+	}
+	if (slicesCloudContainer->currentRow() == m_sliceList.size() - 1) 
+	{
+		switchDownSliceButton->setEnabled(false);
+	}
 }
 
 void LibpointmatcherConvergenceDialog::swapClouds()
 {
-	if (!m_cloudRef || !m_cloudRead)
-	{
-		assert(false);
+	
+	int currentSlice = slicesCloudContainer-> currentRow();
+	//GUI
+	QListWidgetItem* refItem = refCloudName->takeItem(0);
+	QListWidgetItem* sliceItem = slicesCloudContainer->takeItem(currentSlice);
+	slicesCloudContainer->insertItem(currentSlice,refItem);
+	refCloudName->insertItem(0,sliceItem);
+	slicesCloudContainer->setCurrentRow(currentSlice);
+	
+	//Object cc
+	ccPointCloud* sliceTemp = m_sliceList[currentSlice];
+	ccPointCloud* refTemp = m_cloudRef;
+	m_sliceList[currentSlice] = refTemp;
+	m_cloudRef = sliceTemp;
+
+	verifySliceEnbaling();
+}
+void LibpointmatcherConvergenceDialog::changeSlicePositionUp()
+{
+	int currentSlice = slicesCloudContainer->currentRow();
+	if (currentSlice == 0) {
 		return;
 	}
-	ccPointCloud* temp_ref = m_cloudRef;
-	ccPointCloud* temp_read = m_cloudRead;
-	m_cloudRef = temp_read;
-	m_cloudRead = temp_ref;
+	//Object cc
+	std::iter_swap(m_sliceList.begin() + currentSlice, m_sliceList.begin() + currentSlice - 1);
 
-	refCloudName->setText(GetEntityName(m_cloudRef));
-	readCloudName->setText(GetEntityName(m_cloudRead));
+	//Gui
+	QListWidgetItem* currentItem = slicesCloudContainer->takeItem(currentSlice - 1);
+	slicesCloudContainer->insertItem(currentSlice, currentItem);
+	slicesCloudContainer->setCurrentRow(currentSlice);
+	verifySliceEnbaling(); 
+};
 
-	if (m_currentReadEntityIndex == 0) 
-	{
-		m_currentReadEntityIndex = 1;
+void LibpointmatcherConvergenceDialog::changeSlicePositionDown()
+{
+	int currentSlice = slicesCloudContainer->currentRow();
+	if (currentSlice+1 == m_sliceList.size()) {
+		return;
 	}
-	else
-	{
-		m_currentReadEntityIndex = 0; 
-	}
-}
+	//Object cc
+	std::iter_swap(m_sliceList.begin() + currentSlice, m_sliceList.begin() + currentSlice + 1);
+
+	//Gui
+	QListWidgetItem* currentItem = slicesCloudContainer->takeItem(currentSlice + 1);
+	slicesCloudContainer->insertItem(currentSlice, currentItem);
+	slicesCloudContainer->setCurrentRow(currentSlice);
+	verifySliceEnbaling();
+
+};
+
 
 
 int LibpointmatcherConvergenceDialog::getCurrentFilterTabWidget()

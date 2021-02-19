@@ -63,6 +63,10 @@ private:
 	void doActionConvergence();
 	//! Applying Transformation 
 	void applyTransformationEntity(const ccGLMatrixd& mat, int entityIndex);
+	//! Number of Point Clouds
+	int numberOfPointCloudEntity(std::vector<ccHObject*>);
+	
+
 
 	//! Default action
 	QAction* m_actionFilter;

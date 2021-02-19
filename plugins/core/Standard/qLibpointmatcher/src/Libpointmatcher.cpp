@@ -55,7 +55,7 @@ void Libpointmatcher::onNewSelection(const ccHObject::Container& selectedEntitie
 	}
 	if (m_actionConvergence)
 	{
-		m_actionConvergence->setEnabled(selectedEntities.size() >= 2 && selectedEntities[0]->isA(CC_TYPES::POINT_CLOUD));
+		m_actionConvergence->setEnabled(numberOfPointCloudEntity(selectedEntities) >= 2);
 	}
 
 	m_selectedEntities = selectedEntities;
@@ -389,16 +389,13 @@ void Libpointmatcher::doActionConvergence()
 	if (!m_app)
 		return;
 
-	if (m_selectedEntities.size() != 2 || !m_selectedEntities[0]->isA(CC_TYPES::POINT_CLOUD) || !m_selectedEntities[1]->isA(CC_TYPES::POINT_CLOUD))
+	if (m_selectedEntities.size() < 2 || !m_selectedEntities[0]->isA(CC_TYPES::POINT_CLOUD))
 	{
-		m_app->dispToConsole("Select two pointclouds", ccMainAppInterface::ERR_CONSOLE_MESSAGE);
+		m_app->dispToConsole("Select two pointclouds or more", ccMainAppInterface::ERR_CONSOLE_MESSAGE);
 		return;
 	}
 
-	//display dialog
-	ccPointCloud* cloud1 = ccHObjectCaster::ToPointCloud(m_selectedEntities[0]);
-	ccPointCloud* cloud2 = ccHObjectCaster::ToPointCloud(m_selectedEntities[1]);
-	LibpointmatcherConvergenceDialog dlgConvergence(cloud1, cloud2, m_app);
+	LibpointmatcherConvergenceDialog dlgConvergence(m_selectedEntities, m_app);
 	if (!dlgConvergence.exec())
 	{
 		//process cancelled by the user
@@ -440,6 +437,19 @@ void Libpointmatcher::doActionConvergence()
 	}
 
 }
+int Libpointmatcher::numberOfPointCloudEntity(std::vector<ccHObject*> entities)
+{
+	int n=0;
+	for (int i = 0; i < entities.size(); i++)
+	{
+		if (entities[i]->isA(CC_TYPES::POINT_CLOUD))
+		{
+			n++;
+		};
+	}
+	return n;
+}
+
 ;
 
 
