@@ -25,6 +25,7 @@
 #include "LibpointmatcherTools.h"
 #include "LibpointmatcherDialog.h"
 #include "LibpointmatcherOutlierDialog.h"
+#include "LibpointmatcherConvergenceDialog.h"
 #include "LibpointmatcherDisclaimerDialog.h"
 #include "LibpointmatcherProcess.h"
 
@@ -54,7 +55,7 @@ void Libpointmatcher::onNewSelection(const ccHObject::Container& selectedEntitie
 	}
 	if (m_actionConvergence)
 	{
-		m_actionConvergence->setEnabled(selectedEntities.size() >= 1 && selectedEntities[0]->isA(CC_TYPES::POINT_CLOUD));
+		m_actionConvergence->setEnabled(selectedEntities.size() >= 2 && selectedEntities[0]->isA(CC_TYPES::POINT_CLOUD));
 	}
 
 	m_selectedEntities = selectedEntities;
@@ -82,7 +83,7 @@ QList<QAction *> Libpointmatcher::getActions()
 		m_actionConvergence = new QAction("Convergence", this);
 		m_actionConvergence->setToolTip("Convergence with Libpointmatcher/M3C2 chains");
 		m_actionConvergence->setIcon(QIcon(QString::fromUtf8(":/CC/plugin/qLibpointmatcher/images/convergenceIcon.png")));
-		connect(m_actionConvergence, &QAction::triggered, this, &Libpointmatcher::doActionFilter);
+		connect(m_actionConvergence, &QAction::triggered, this, &Libpointmatcher::doActionConvergence);
 	}
 
 	return QList<QAction *>{ m_actionFilter,
@@ -377,4 +378,68 @@ void Libpointmatcher::doActionICP()
 
 }
 ;
+void Libpointmatcher::doActionConvergence()
+{
+	//disclaimer accepted?
+	if (!DisclaimerDialog::show(m_app))
+		return;
+
+	//m_app should have already been initialized by CC when plugin is loaded!
+	assert(m_app);
+	if (!m_app)
+		return;
+
+	if (m_selectedEntities.size() != 2 || !m_selectedEntities[0]->isA(CC_TYPES::POINT_CLOUD) || !m_selectedEntities[1]->isA(CC_TYPES::POINT_CLOUD))
+	{
+		m_app->dispToConsole("Select two pointclouds", ccMainAppInterface::ERR_CONSOLE_MESSAGE);
+		return;
+	}
+
+	//display dialog
+	ccPointCloud* cloud1 = ccHObjectCaster::ToPointCloud(m_selectedEntities[0]);
+	ccPointCloud* cloud2 = ccHObjectCaster::ToPointCloud(m_selectedEntities[1]);
+	LibpointmatcherConvergenceDialog dlgConvergence(cloud1, cloud2, m_app);
+	if (!dlgConvergence.exec())
+	{
+		//process cancelled by the user
+		return;
+	}
+	if (!dlgConvergence.nofilterAllowed())
+	{
+		if (dlgConvergence.getFiltersRef().size() < 1 || dlgConvergence.getFiltersRead().size() < 1)
+		{
+			m_app->dispToConsole(QString("No Subsampling filters selected, enable no filter option or add filters "), ccMainAppInterface::ERR_CONSOLE_MESSAGE);
+			return;
+		}
+	}
+	// verify on which widget you are
+
+	dlgConvergence.acceptNormalOptions();
+	dlgConvergence.acceptOutlierOption();
+	dlgConvergence.acceptKdTreeOption();
+	dlgConvergence.acceptMinimizerOption();
+	dlgConvergence.acceptCheckerOption();
+	ccLog::Print(QString("After Checker"));
+
+
+	QString errorMessage;
+	ccPointCloud* outputCloud = nullptr; //only necessary for the command line version in fact
+	QProgressDialog pDlg("Please wait...", "Cancel", 0, 0);
+	pDlg.setWindowTitle("Libpointmatcher");
+	pDlg.show();
+
+	if (!pDlg.wasCanceled())
+	{
+		applyTransformationEntity(LibpointmatcherProcess::convergence(dlgConvergence, errorMessage, m_app->getMainWindow(), m_app), dlgConvergence.getCurrentreadIndexEntity());
+
+	}
+	if (m_app)
+	{
+		m_app->refreshAll();
+		pDlg.reset();
+	}
+
+}
+;
+
 

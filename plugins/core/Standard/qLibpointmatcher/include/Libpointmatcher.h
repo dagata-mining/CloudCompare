@@ -59,6 +59,8 @@ private:
 	void doActionFilter();
 	//! ICP launching
 	void doActionICP();
+	//! Convergence launching
+	void doActionConvergence();
 	//! Applying Transformation 
 	void applyTransformationEntity(const ccGLMatrixd& mat, int entityIndex);
 

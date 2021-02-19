@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>LibpointmatcherOutlierDialog</class>
- <widget class="QDialog" name="LibpointmatcherOutlierDialog">
+ <class>LibpointmatcherConvergenceDialog</class>
+ <widget class="QDialog" name="LibpointmatcherConvergenceDialog">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -21,7 +21,7 @@
    <item>
     <widget class="QTabWidget" name="filterTabWidget">
      <property name="currentIndex">
-      <number>0</number>
+      <number>7</number>
      </property>
      <widget class="QWidget" name="filterParams">
       <property name="accessibleName">
@@ -3948,9 +3948,9 @@
        </property>
       </widget>
      </widget>
-     <widget class="QWidget" name="PointClouds">
+     <widget class="QWidget" name="Slices">
       <attribute name="title">
-       <string>PointClouds</string>
+       <string>Slices</string>
       </attribute>
       <widget class="QLineEdit" name="refCloudName">
        <property name="geometry">
@@ -4051,38 +4051,6 @@
   <include location="../qLibpointmatcher.qrc"/>
  </resources>
  <connections>
-  <connection>
-   <sender>buttonBox</sender>
-   <signal>accepted()</signal>
-   <receiver>LibpointmatcherOutlierDialog</receiver>
-   <slot>accept()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>316</x>
-     <y>358</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>157</x>
-     <y>274</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>buttonBox</sender>
-   <signal>rejected()</signal>
-   <receiver>LibpointmatcherOutlierDialog</receiver>
-   <slot>reject()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>384</x>
-     <y>358</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>286</x>
-     <y>274</y>
-    </hint>
-   </hints>
-  </connection>
   <connection>
    <sender>Options</sender>
    <signal>currentChanged(int)</signal>

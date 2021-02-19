@@ -15,7 +15,7 @@
 //#                                                                        #
 //##########################################################################
 
-#include "LibpointMatcherOutlierDialog.h"
+#include "LibpointmatcherConvergenceDialog.h"
 
 //qCC
 #include "ccMainAppInterface.h"
@@ -55,50 +55,97 @@ static QString GetEntityName(ccHObject* obj)
 
 
 
-LibpointmatcherOutlierDialog::LibpointmatcherOutlierDialog(ccMainAppInterface* app)
+LibpointmatcherConvergenceDialog::LibpointmatcherConvergenceDialog(ccPointCloud* cloud1, ccPointCloud* cloud2, ccMainAppInterface* app)
 	: QDialog(app ? app->getMainWindow() : nullptr)
-	, Ui::LibpointmatcherOutlierDialog()
+	, Ui::LibpointmatcherConvergenceDialog()
 	, m_app(app)
 	, m_corePointsCloud(nullptr)
 	, m_normalParams(nullptr)
 	, m_currentFilterName("")
 	, m_filterItemRef(0)
+	, m_filterItemRead(0)
+	, m_cloudRef(nullptr)
+	, m_cloudRead(nullptr)
+	, m_refFilterInit(false)
+	, m_readFilterInit(false)
+	, m_noFilter(false)
+	, m_refNeedsNormalICP(false)
+	, m_kdTree(nullptr)
+	, m_currentReadEntityIndex(1)
 {
 
 	setupUi(this);
-	connect(addFilterButton, &QAbstractButton::clicked, this, &LibpointmatcherOutlierDialog::addToFilterList);
-	connect(listFilters, &QListWidget::currentItemChanged, this, &LibpointmatcherOutlierDialog::selectingFilterItem);
-	connect(listFilters, &QListWidget::itemClicked, this, &LibpointmatcherOutlierDialog::selectingFilterItem);
-	connect(switchDownFilter, &QToolButton::clicked, this, &LibpointmatcherOutlierDialog::changeFilterPositionDown);
-	connect(switchUpFilter, &QToolButton::clicked, this, &LibpointmatcherOutlierDialog::changeFilterPositionUp);
-	connect(deleteOneFilter, &QToolButton::clicked, this, &LibpointmatcherOutlierDialog::removeFromFilterList);
+	//Ref
+	connect(AddRef, &QAbstractButton::clicked, this, &LibpointmatcherConvergenceDialog::addToFilterListRef);
+	connect(listFiltersRef, &QListWidget::currentItemChanged, this, &LibpointmatcherConvergenceDialog::selectingFilterItemRef);
+	connect(listFiltersRef, &QListWidget::itemClicked, this, &LibpointmatcherConvergenceDialog::selectingFilterItemRef);
+	connect(switchDownFilterRef, &QToolButton::clicked, this, &LibpointmatcherConvergenceDialog::changeFilterPositionDownRef);
+	connect(switchUpFilterRef, &QToolButton::clicked, this, &LibpointmatcherConvergenceDialog::changeFilterPositionUpRef);
+	connect(deleteOneFilterRef, &QToolButton::clicked, this, &LibpointmatcherConvergenceDialog::removeFromFilterListRef);
+	// read
+	connect(AddRead, &QAbstractButton::clicked, this, &LibpointmatcherConvergenceDialog::addToFilterListRead);
+	connect(listFiltersRead, &QListWidget::currentItemChanged, this, &LibpointmatcherConvergenceDialog::selectingFilterItemRead);
+	connect(listFiltersRead, &QListWidget::itemClicked, this, &LibpointmatcherConvergenceDialog::selectingFilterItemRead);
+	connect(switchDownFilterRead, &QToolButton::clicked, this, &LibpointmatcherConvergenceDialog::changeFilterPositionDownRead);
+	connect(switchUpFilterRead, &QToolButton::clicked, this, &LibpointmatcherConvergenceDialog::changeFilterPositionUpRead);
+	connect(deleteOneFilterRead, &QToolButton::clicked, this, &LibpointmatcherConvergenceDialog::removeFromFilterListRead);
+	// Clouds
+	connect(swapCloudsButton, &QToolButton::clicked, this, &LibpointmatcherConvergenceDialog::swapClouds);
+	connect(noFilterSubsampling, &QCheckBox::clicked, this, &LibpointmatcherConvergenceDialog::noFilter);
 
 	// Set up on initialization 
-	listFilters->setCurrentRow(0);
+	listFiltersRef->setCurrentRow(0);
 	selectingFilterItemRef();
+	listFiltersRead->setCurrentRow(0);
+	selectingFilterItemRead();
+	setClouds(cloud1, cloud2);
 }
 
-void LibpointmatcherOutlierDialog::disableFilterListButtonsRef()
+void LibpointmatcherConvergenceDialog::disableFilterListButtonsRef()
 {
 
 	switchDownFilterRef->setEnabled(false);
 	switchUpFilterRef->setEnabled(false);
 	deleteOneFilterRef->setEnabled(false);
 }
+void LibpointmatcherConvergenceDialog::disableFilterListButtonsRead()
+{
+	switchDownFilterRead->setEnabled(false);
+	switchUpFilterRead->setEnabled(false);
+	deleteOneFilterRead->setEnabled(false);
+}
 
-void LibpointmatcherOutlierDialog::addToFilterListRef() {
-	if (filterTabWidgetRef->currentIndex() != 0)
+void LibpointmatcherConvergenceDialog::addToFilterListRef() {
+	if (filterTabWidget->currentIndex() != 0)
 	{
 		return;
 	};
 
 	acceptFilterOptions(true);
 	listFiltersRef->addItem(m_currentFilterName);
+	m_refFilterInit = true;
+
+
+};
+void LibpointmatcherConvergenceDialog::noFilter()
+{
+	m_noFilter = noFilterSubsampling->isChecked();
+}
+
+void LibpointmatcherConvergenceDialog::addToFilterListRead() {
+	if (filterTabWidget->currentIndex() != 0)
+	{
+		return;
+	}
+
+	acceptFilterOptions(false);
+	listFiltersRead->addItem(m_currentFilterName);
+	m_readFilterInit = true;
 
 
 };
 
-void LibpointmatcherOutlierDialog::selectingFilterItemRef()
+void LibpointmatcherConvergenceDialog::selectingFilterItemRef()
 {
 	m_filterItemRef = listFiltersRef->currentRow();
 	switchDownFilterRef->setEnabled(true);
@@ -115,7 +162,25 @@ void LibpointmatcherOutlierDialog::selectingFilterItemRef()
 
 }
 
-void LibpointmatcherOutlierDialog::changeFilterPositionUpRef()
+void LibpointmatcherConvergenceDialog::selectingFilterItemRead()
+{
+	m_filterItemRead = listFiltersRead->currentRow();
+	switchDownFilterRead->setEnabled(true);
+	switchUpFilterRead->setEnabled(true);
+	if (m_filterItemRead == 0)
+	{
+		switchUpFilterRead->setEnabled(false);
+	}
+	if (m_filterItemRead + 1 == m_filtersRead.size())
+	{
+		switchDownFilterRead->setEnabled(false);
+	}
+	deleteOneFilterRead->setEnabled(true);
+
+}
+
+
+void LibpointmatcherConvergenceDialog::changeFilterPositionUpRef()
 {
 
 	if (m_filterItemRef == 0) {
@@ -126,13 +191,29 @@ void LibpointmatcherOutlierDialog::changeFilterPositionUpRef()
 	std::iter_swap(m_useExistingNormalsRef.begin() + m_filterItemRef, m_useExistingNormalsRef.begin() + m_filterItemRef - 1);
 
 	QListWidgetItem* currentItem = listFiltersRef->takeItem(m_filterItemRef-1);
-	listFiltersRef->insertItem(m_filterItemRef, currentItemRef);
+	listFiltersRef->insertItem(m_filterItemRef, currentItem);
 
 
 	selectingFilterItemRef();
 };
+void LibpointmatcherConvergenceDialog::changeFilterPositionUpRead()
+{
 
-void LibpointmatcherOutlierDialog::changeFilterPositionDownRef()
+	if (m_filterItemRead == 0) {
+		return;
+	}
+	std::iter_swap(m_filtersRead.begin() + m_filterItemRead, m_filtersRead.begin() + m_filterItemRead - 1);
+	std::iter_swap(m_needNormalsRead.begin() + m_filterItemRead, m_needNormalsRead.begin() + m_filterItemRead - 1);
+	std::iter_swap(m_useExistingNormalsRead.begin() + m_filterItemRead, m_useExistingNormalsRead.begin() + m_filterItemRead - 1);
+
+	QListWidgetItem* currentItem = listFiltersRead->takeItem(m_filterItemRead - 1);
+	listFiltersRead->insertItem(m_filterItemRead, currentItem);
+
+
+	selectingFilterItemRead();
+};
+
+void LibpointmatcherConvergenceDialog::changeFilterPositionDownRef()
 {
 
 	if (m_filterItemRef + 1 == m_filtersRef.size()) {
@@ -143,14 +224,32 @@ void LibpointmatcherOutlierDialog::changeFilterPositionDownRef()
 	std::iter_swap(m_useExistingNormalsRef.begin() + m_filterItemRef, m_useExistingNormalsRef.begin() + m_filterItemRef + 1);
 
 	QListWidgetItem* currentItem = listFiltersRef->takeItem(m_filterItemRef+1);
-	listFilters->insertItem(m_filterItemRef, currentItem);
+	listFiltersRef->insertItem(m_filterItemRef, currentItem);
 
 
 	selectingFilterItemRef();
 
 };
 
-void LibpointmatcherOutlierDialog::removeFromFilterListRef() {
+void LibpointmatcherConvergenceDialog::changeFilterPositionDownRead()
+{
+
+	if (m_filterItemRead + 1 == m_filtersRead.size()) {
+		return;
+	}
+	std::iter_swap(m_filtersRead.begin() + m_filterItemRead, m_filtersRead.begin() + m_filterItemRead + 1);
+	std::iter_swap(m_needNormalsRead.begin() + m_filterItemRead, m_needNormalsRead.begin() + m_filterItemRead + 1);
+	std::iter_swap(m_useExistingNormalsRead.begin() + m_filterItemRead, m_useExistingNormalsRead.begin() + m_filterItemRead + 1);
+
+	QListWidgetItem* currentItem = listFiltersRead->takeItem(m_filterItemRead + 1);
+	listFiltersRead->insertItem(m_filterItemRead, currentItem);
+
+
+	selectingFilterItemRead();
+
+};
+
+void LibpointmatcherConvergenceDialog::removeFromFilterListRef() {
 
 	if (m_filtersRef.size() == 0) {
 		return;
@@ -174,8 +273,32 @@ void LibpointmatcherOutlierDialog::removeFromFilterListRef() {
 
 
 };
+void LibpointmatcherConvergenceDialog::removeFromFilterListRead() {
 
-void LibpointmatcherOutlierDialog::acceptNormalOptions()
+	if (m_filtersRead.size() == 0) {
+		return;
+	}
+	m_filtersRead.erase(m_filtersRead.begin() + m_filterItemRead);
+	m_needNormalsRead.erase(m_needNormalsRead.begin() + m_filterItemRead);
+	m_useExistingNormalsRead.erase(m_useExistingNormalsRead.begin() + m_filterItemRead);
+
+	qDeleteAll(listFiltersRead->selectedItems());
+	listFiltersRead->setCurrentRow(0);
+
+	if (m_filtersRead.size() == 0)
+	{
+		disableFilterListButtonsRead();
+
+	}
+	else
+	{
+		selectingFilterItemRead();
+	}
+
+
+};
+
+void LibpointmatcherConvergenceDialog::acceptNormalOptions()
 {
 
 	//SurfaceNormalFilter
@@ -195,18 +318,18 @@ void LibpointmatcherOutlierDialog::acceptNormalOptions()
 	);
 }
 
-void LibpointmatcherOutlierDialog::acceptOutlierOption() 
+void LibpointmatcherConvergenceDialog::acceptOutlierOption() 
 {
-	std::shared_ptr<PM::OutlierFilter> outlier;
+	
 	int indexOutlier = outlierType->currentIndex();
-	bool outlierNeedNormals = false;
+
 
 	switch (indexOutlier) {
 	
 	case 0:
 	{
 		std::string maxDistValue = std::to_string(maxDistOutlier->value());
-		outlier = PM::get().OutlierFilterRegistrar.create("MaxDistOutlierFilter",
+		m_outlierFilter = PM::get().OutlierFilterRegistrar.create("MaxDistOutlierFilter",
 			{
 				{"maxDist",maxDistValue},
 			}
@@ -216,7 +339,7 @@ void LibpointmatcherOutlierDialog::acceptOutlierOption()
 	case 1:
 	{
 		std::string minDistValue = std::to_string(minDistOutlier->value());
-		outlier = PM::get().OutlierFilterRegistrar.create("MinDistOutlierFilter",
+		m_outlierFilter = PM::get().OutlierFilterRegistrar.create("MinDistOutlierFilter",
 			{
 				{"minDist",minDistValue},
 			}
@@ -226,7 +349,7 @@ void LibpointmatcherOutlierDialog::acceptOutlierOption()
 	case 2:
 	{
 		std::string factorValue = std::to_string(medianDistOutlier->value());
-		outlier = PM::get().OutlierFilterRegistrar.create("MedianDistOutlierFilter",
+		m_outlierFilter = PM::get().OutlierFilterRegistrar.create("MedianDistOutlierFilter",
 			{
 				{"factor",factorValue},
 			}
@@ -236,7 +359,7 @@ void LibpointmatcherOutlierDialog::acceptOutlierOption()
 	case 3:
 	{
 		std::string ratioValue = std::to_string(trimmedOutlierRatio->value());
-		outlier = PM::get().OutlierFilterRegistrar.create("TrimmedDistOutlierFilter",
+		m_outlierFilter = PM::get().OutlierFilterRegistrar.create("TrimmedDistOutlierFilter",
 			{
 				{"ratio",ratioValue},
 			}
@@ -248,7 +371,7 @@ void LibpointmatcherOutlierDialog::acceptOutlierOption()
 		std::string minRatioValue = std::to_string(varTrimmedOutlierMin->value());
 		std::string maxRatioValue = std::to_string(varTrimmedOutlierMax->value());
 		std::string lamdaValue = std::to_string(varTrimmedOutlierLambda->value());
-		outlier = PM::get().OutlierFilterRegistrar.create("VarTrimmedDistOutlierFilter",
+		m_outlierFilter = PM::get().OutlierFilterRegistrar.create("VarTrimmedDistOutlierFilter",
 			{
 				{"minRatio",minRatioValue},
 				{"maxRatio",maxRatioValue},
@@ -261,12 +384,13 @@ void LibpointmatcherOutlierDialog::acceptOutlierOption()
 	{
 		const double halfC = M_PI / 180;
 		std::string maxAngleValue = std::to_string(surfaceOutlierAngle->value()*halfC);
-		outlier = PM::get().OutlierFilterRegistrar.create("SurfaceNormalOutlierFilter",
+		m_outlierFilter = PM::get().OutlierFilterRegistrar.create("SurfaceNormalOutlierFilter",
 			{
 				{"maxAngle",maxAngleValue},	
 			}
 		);
-		outlierNeedNormals = true;
+		m_refNeedsNormalICP = true;
+		m_readNeedsNormalICP = true;
 		break;
 	}
 	case 6:
@@ -310,10 +434,10 @@ void LibpointmatcherOutlierDialog::acceptOutlierOption()
 		if (robustOutlierDistancePlane->isChecked()) 
 		{ 
 			distanceTypeValue = "point2plane"; 
-			outlierNeedNormals = true;
+			m_refNeedsNormalICP = true;
 		}
 
-		outlier = PM::get().OutlierFilterRegistrar.create("RobustOutlierFilter",
+		m_outlierFilter = PM::get().OutlierFilterRegistrar.create("RobustOutlierFilter",
 			{
 				{"robustFct",robustFctValue},
 				{"tuning",tuningValue},
@@ -326,13 +450,56 @@ void LibpointmatcherOutlierDialog::acceptOutlierOption()
 	}
 	default: 
 	{
-		outlier = PM::get().OutlierFilterRegistrar.create("NullOutlierFilter");
+		m_outlierFilter = PM::get().OutlierFilterRegistrar.create("NullOutlierFilter");
 		break;
 	}
 	}
 }
 
-void LibpointmatcherOutlierDialog::acceptFilterOptions(bool ref) 
+void LibpointmatcherConvergenceDialog::acceptCheckerOption() 
+{
+	std::shared_ptr<PM::TransformationChecker> checker;
+	if (enableIterationChecker->isChecked())
+	{
+		std::string iterationValue = std::to_string((int)round(iterationCheckerIter->value()));
+		checker = PM::get().TransformationCheckerRegistrar.create("CounterTransformationChecker", {
+			{"maxIterationCount",iterationValue}
+			});
+		m_checkers.push_back(checker);
+		ccLog::Print(QString("After Iteration checker"));
+	}
+	if (enableDifferentialChecker->isChecked())
+	{
+		std::string minDiffRotErrValue = std::to_string(differentialCheckerRot->value());
+		std::string minDiffTransErrValue = std::to_string(differentialCheckerTrans->value());
+		std::string smoothLengthValue = std::to_string((int)round(differentialCheckerIter->value()));
+		checker = PM::get().TransformationCheckerRegistrar.create("DifferentialTransformationChecker", {
+			{"minDiffRotErr",minDiffRotErrValue},
+			{"minDiffTransErr",minDiffTransErrValue},
+			{"smoothLength",smoothLengthValue}
+			});
+		m_checkers.push_back(checker);
+		ccLog::Print(QString("After Differential checker"));
+	}
+	if (enableMaxBoundChecker->isChecked())
+	{
+		std::string maxRotationNormValue = std::to_string(maxBoundCheckerRot->value());
+		std::string maxTranslationNormValue = std::to_string(maxBoundCheckerTrans->value());
+		checker = PM::get().TransformationCheckerRegistrar.create("DifferentialTransformationChecker", {
+			{"maxRotationNorm",maxRotationNormValue},
+			{"maxTranslationNorm",maxTranslationNormValue},
+			});
+		m_checkers.push_back(checker);
+	}
+	// Fall back to this if nothing is selected (40 iter default)
+	if (!enableMaxBoundChecker->isChecked() && !enableDifferentialChecker->isChecked() && !enableIterationChecker->isChecked())
+	{
+		checker = PM::get().TransformationCheckerRegistrar.create("CounterTransformationChecker");
+		m_checkers.push_back(checker);
+	}
+}
+
+void LibpointmatcherConvergenceDialog::acceptFilterOptions(bool ref) 
 {
 	int indexFilter = Options->currentIndex();
 	bool useExistingNormals = true;
@@ -591,18 +758,155 @@ void LibpointmatcherOutlierDialog::acceptFilterOptions(bool ref)
 		m_useExistingNormalsRead.push_back(useExistingNormals);
 	}
 }
+void LibpointmatcherConvergenceDialog::acceptKdTreeOption()
+{
 
-int LibpointmatcherOutlierDialog::getCurrentFilterTabWidget()
+	std::string epsilonValue = std::to_string((int)round(kdTreeEpsilon->value()));
+	std::string knnValue = std::to_string((int)round(kdTreeKnn->value()));
+	std::string maxDistValue = std::to_string(kdTreeMaxDist->value());
+	std::string searchTypeValue = "1";
+	if (kdTreeBrute->isChecked()) { searchTypeValue = "0"; }
+	if (kdTreeTree->isChecked()) { searchTypeValue = "1"; }
+	if (kdTreeMaxDist->value() < 0.001) { maxDistValue = "inf"; }
+
+	m_kdTree = PM::get().MatcherRegistrar.create(
+		"KDTreeMatcher",
+		{
+			{"knn", knnValue},
+			{"epsilon", epsilonValue},
+			{"searchType",searchTypeValue},
+			{"maxDist",maxDistValue}
+		}
+	);
+};
+void LibpointmatcherConvergenceDialog::acceptMinimizerOption()
+{
+	int indexMinimizer = minimizerType->currentIndex();
+	bool useExistingNormals=true;
+	bool needNormals=false;
+
+	switch (indexMinimizer) 
+	{
+	case 0: 
+	{
+		std::string pplaneforce2DValue = "0";
+		std::string pplaneforce4DOFValue = "0";
+		if (pplaneforce4DOF->isChecked()){ pplaneforce4DOFValue = "1"; }
+		if (pplaneforce2D->isChecked()) { pplaneforce2DValue = "1"; }
+		m_errorMinimizer =
+			PM::get().ErrorMinimizerRegistrar.create("PointToPlaneErrorMinimizer", {
+				{"force2D",pplaneforce2DValue},
+				{"force4DOF",pplaneforce4DOFValue} 
+				}
+				);
+		// Reference Cloud will need normals
+		if (!pplaneNormals->isChecked()) { useExistingNormals = false; }
+		m_refNeedsNormalICP = true;
+		break;
+	}
+	case 1:
+	{
+		std::string pplaneforce2DValue = "0";
+		std::string pplaneforce4DOFValue = "0";
+		if (pplaneforce4DOFCov->isChecked()) { pplaneforce4DOFValue = "1"; }
+		if (pplaneforce2DCov->isChecked()) { pplaneforce2DValue = "1"; }
+		std::string sensorStdDevValue = std::to_string(pplaneStdDevCov->value());
+
+		m_errorMinimizer =
+			PM::get().ErrorMinimizerRegistrar.create("PointToPlaneWithCovErrorMinimizer", {
+				{"force2D",pplaneforce2DValue},
+				{"force4DOF",pplaneforce4DOFValue},
+				{"sensorStdDev",sensorStdDevValue}
+				}
+		);
+		// Reference Cloud will need normals
+		if (!pplaneNormalsCov->isChecked()) { useExistingNormals = false; }
+		m_refNeedsNormalICP = true;
+		break;
+	}
+	case 2:
+	{
+
+		m_errorMinimizer =
+			PM::get().ErrorMinimizerRegistrar.create("PointToPointErrorMinimizer");
+		break;
+	}
+	case 3:
+	{
+		std::string sensorStdDevValue = std::to_string(ppointStdDevCov->value());
+		m_errorMinimizer =
+			PM::get().ErrorMinimizerRegistrar.create("PointToPointWithCovErrorMinimizer", {
+				{"sensorStdDev",sensorStdDevValue}
+				}
+		);
+		break;
+	}
+	case 4:
+	{
+
+		m_errorMinimizer =
+			PM::get().ErrorMinimizerRegistrar.create("PointToPointSimilarityErrorMinimizer");
+		// Reference Cloud will need normals, the cloud will scaled
+		if (!pSimilarityNormals->isChecked()) { useExistingNormals = false; }
+		m_refNeedsNormalICP = true;
+		break;
+	}
+
+	}
+
+}
+void LibpointmatcherConvergenceDialog::setClouds(ccPointCloud* cloud1, ccPointCloud* cloud2)
+{
+	if (!cloud1 || !cloud2)
+	{
+		assert(false);
+		return;
+	}
+	m_cloudRef = cloud1;
+	m_cloudRead = cloud2;
+	m_currentReadEntityIndex = 1;
+
+	refCloudName->setText(GetEntityName(cloud1));
+	readCloudName->setText(GetEntityName(cloud2));
+}
+
+void LibpointmatcherConvergenceDialog::swapClouds()
+{
+	if (!m_cloudRef || !m_cloudRead)
+	{
+		assert(false);
+		return;
+	}
+	ccPointCloud* temp_ref = m_cloudRef;
+	ccPointCloud* temp_read = m_cloudRead;
+	m_cloudRef = temp_read;
+	m_cloudRead = temp_ref;
+
+	refCloudName->setText(GetEntityName(m_cloudRef));
+	readCloudName->setText(GetEntityName(m_cloudRead));
+
+	if (m_currentReadEntityIndex == 0) 
+	{
+		m_currentReadEntityIndex = 1;
+	}
+	else
+	{
+		m_currentReadEntityIndex = 0; 
+	}
+}
+
+
+int LibpointmatcherConvergenceDialog::getCurrentFilterTabWidget()
 {
 	return filterTabWidget->currentIndex();
 }
 
-void LibpointmatcherOutlierDialog::setCloud1Visibility(bool state)
+void LibpointmatcherConvergenceDialog::setCloud1Visibility(bool state)
 {
-	if (m_cloud1)
+	if (m_cloudRef)
 	{
-		m_cloud1->setVisible(state);
-		m_cloud1->prepareDisplayForRefresh();
+		m_cloudRef->setVisible(state);
+		m_cloudRef->prepareDisplayForRefresh();
 	}
 	if (m_app)
 	{
@@ -611,12 +915,12 @@ void LibpointmatcherOutlierDialog::setCloud1Visibility(bool state)
 	}
 }
 
-void LibpointmatcherOutlierDialog::setCloud2Visibility(bool state)
+void LibpointmatcherConvergenceDialog::setCloud2Visibility(bool state)
 {
-	if (m_cloud2)
+	if (m_cloudRead)
 	{
-		m_cloud2->setVisible(state);
-		m_cloud2->prepareDisplayForRefresh();
+		m_cloudRead->setVisible(state);
+		m_cloudRead->prepareDisplayForRefresh();
 	}
 	if (m_app)
 	{

@@ -140,7 +140,7 @@
             <item>
              <widget class="QLabel" name="maxDensityTitle">
               <property name="text">
-               <string>The desired maximum density of points in points/m³</string>
+               <string>The desired maximum density of points in point/m³</string>
               </property>
              </widget>
             </item>
@@ -1957,10 +1957,10 @@
   </connection>
  </connections>
  <buttongroups>
-  <buttongroup name="buttonGroup_3"/>
-  <buttongroup name="buttonGroup_6"/>
   <buttongroup name="buttonGroup_5"/>
   <buttongroup name="buttonGroup"/>
+  <buttongroup name="buttonGroup_3"/>
+  <buttongroup name="buttonGroup_6"/>
   <buttongroup name="buttonGroup_4"/>
   <buttongroup name="buttonGroup_2"/>
  </buttongroups>

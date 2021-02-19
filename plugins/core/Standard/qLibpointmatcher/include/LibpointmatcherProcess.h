@@ -21,6 +21,7 @@
 //Local
 #include "LibpointmatcherDialog.h"
 #include "LibpointmatcherOutlierDialog.h"
+#include "LibpointmatcherConvergenceDialog.h"
 //qCC
 #include "ccMainAppInterface.h"
 #include "ccStdPluginInterface.h"
@@ -42,7 +43,10 @@ public:
 		QString& errorMessage,
 		QWidget* parentWidget/*=nullptr*/,
 		ccMainAppInterface* app/*=nullptr*/);
-	
+	static ccGLMatrixd& convergence(const LibpointmatcherConvergenceDialog& dlg,
+		QString& errorMessage,
+		QWidget* parentWidget/*=nullptr*/,
+		ccMainAppInterface* app/*=nullptr*/);
 	// Transfrom T eigen matrix to a CCGLMatrix
 	static ccGLMatrixd convertingOutputMatrix(Eigen::MatrixXf m);
 
