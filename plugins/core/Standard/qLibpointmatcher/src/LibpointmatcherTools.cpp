@@ -951,24 +951,23 @@ CCCoreLib::ReferenceCloud* LibpointmatcherTools::pointmatcherToCC(DP* cloud, ccP
 
 DP  LibpointmatcherTools::filter(DP cloud, std::vector< std::shared_ptr<PM::DataPointsFilter>> filters, std::shared_ptr<PM::DataPointsFilter> normalParams, std::vector<bool> needNormals, bool hasNormalDescriptors)
 {
-	bool hasNormalsDescriptorsIter=hasNormalDescriptors;
+	bool hasNormalsDescriptorsIter = hasNormalDescriptors;
 	//Initialize data point chain
 	PM::DataPointsFilters list;
 	list.init();
-	
+
 	for (int i = 0; i < filters.size(); i++) {
-		ccLog::Print("should not be here");
 		if (needNormals[i] && !hasNormalDescriptors)
 		{
 			//Enable Surface Creating 
 			list.push_back(normalParams);
 			// Prevent from redoing the surface creating normals on the next iteration
 			hasNormalsDescriptorsIter = true;
-			
+
 		}
 		list.push_back(filters[i]);
 
-		
+
 	}
 	try
 	{
@@ -981,10 +980,46 @@ DP  LibpointmatcherTools::filter(DP cloud, std::vector< std::shared_ptr<PM::Data
 		ccLog::Error(e.what());
 		return cloudEmpty;
 	}
-	
+
 	ccLog::Print(QString::number(filters.size()));
 
 	return cloud;
+}
+std::shared_ptr<PM::DataPointsFilter> LibpointmatcherTools::boundsFilter(std::vector<float> bounds, bool removeInside = false, float padding = 0)
+{
+	std::string removeInsideValue = "0";
+	if (removeInside) { removeInsideValue = "1"; }
+
+	std::shared_ptr<PM::DataPointsFilter> filterParams=
+		PM::get().DataPointsFilterRegistrar.create(
+			"BoundingBoxDataPointsFilter",
+			{
+				{"xMax", std::to_string(bounds[0] +padding) },
+				{"yMax", std::to_string(bounds[1] + padding)},
+				{"zMax", std::to_string(bounds[2] + padding)},
+				{"xMin", std::to_string(bounds[3] - padding)},
+				{"yMin", std::to_string(bounds[4] - padding)},
+				{"zMin", std::to_string(bounds[5] - padding)},
+				{"removeInside", removeInsideValue},
+			}
+	);
+
+}
+
+std::vector<float> LibpointmatcherTools::getBounds(DP* cloud) 
+{
+	typedef DP::View View;
+	std::vector<float> bounds;
+	View viewX(cloud->getFeatureViewByName("x"));
+	View viewY(cloud->getFeatureViewByName("y"));
+	View viewZ(cloud->getFeatureViewByName("z"));
+	bounds.push_back(viewX.maxCoeff());
+	bounds.push_back(viewY.maxCoeff());
+	bounds.push_back(viewZ.maxCoeff());
+	bounds.push_back(viewX.minCoeff());
+	bounds.push_back(viewY.minCoeff());
+	bounds.push_back(viewZ.minCoeff());
+	return bounds;
 }
 
 ;

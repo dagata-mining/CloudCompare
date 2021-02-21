@@ -91,13 +91,13 @@ QList<QAction *> Libpointmatcher::getActions()
 							m_actionConvergence};
 }
 
-void Libpointmatcher::applyTransformationEntity(const ccGLMatrixd& mat, int entityIndex)
+void Libpointmatcher::applyTransformationEntity(ccGLMatrixd transMat, int entityIndex)
 {
 	//if the transformation is partly converted to global shift/scale
 	bool updateGlobalShiftAndScale = false;
 	double scaleChange = 1.0;
 	CCVector3d shiftChange(0, 0, 0);
-	ccGLMatrixd transMat = mat;
+
 
 	//we must backup 'm_selectedEntities' as removeObjectTemporarilyFromDBTree can modify it!
 	ccHObject::Container selectedEntities = m_selectedEntities;
@@ -350,7 +350,7 @@ void Libpointmatcher::doActionICP()
 		}
 	}
 	// verify on which widget you are
-
+	 
 	dlgICP.acceptNormalOptions();
 	dlgICP.acceptOutlierOption();
 	dlgICP.acceptKdTreeOption();
@@ -367,7 +367,8 @@ void Libpointmatcher::doActionICP()
 
 	if (!pDlg.wasCanceled()) 
 	{
-		applyTransformationEntity(LibpointmatcherProcess::ICP(dlgICP, errorMessage, m_app->getMainWindow(), m_app),dlgICP.getCurrentreadIndexEntity());
+		ccGLMatrixd mat = LibpointmatcherProcess::ICP(dlgICP, errorMessage, m_app->getMainWindow(), m_app);
+		applyTransformationEntity(mat,dlgICP.getCurrentreadIndexEntity());
 		
 	}
 	if (m_app)
@@ -427,8 +428,16 @@ void Libpointmatcher::doActionConvergence()
 
 	if (!pDlg.wasCanceled())
 	{
-		applyTransformationEntity(LibpointmatcherProcess::convergence(dlgConvergence, errorMessage, m_app->getMainWindow(), m_app), dlgConvergence.getCurrentreadIndexEntity());
-
+		std::vector<ccGLMatrixd> transformationList =
+			LibpointmatcherProcess::convergence(dlgConvergence, errorMessage, m_app->getMainWindow(), m_app);
+		if (transformationList.size() > 0)
+		{
+			for (int i = 0; i < transformationList.size(); i++)
+			{
+				applyTransformationEntity(transformationList[i], dlgConvergence.getSliceListIndexes()[i]);
+			}
+		}
+		else return;
 	}
 	if (m_app)
 	{

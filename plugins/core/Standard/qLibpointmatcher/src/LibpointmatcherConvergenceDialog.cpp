@@ -66,6 +66,7 @@ LibpointmatcherConvergenceDialog::LibpointmatcherConvergenceDialog(std::vector<c
 	, m_filterItemRead(0)
 	, m_cloudRef(nullptr)
 	, m_cloudRead(nullptr)
+	, m_cloudRefIndex(0)
 	, m_refFilterInit(false)
 	, m_readFilterInit(false)
 	, m_noFilter(false)
@@ -181,7 +182,7 @@ void LibpointmatcherConvergenceDialog::selectingFilterItemRead()
 		switchDownFilterRead->setEnabled(false);
 	}
 	deleteOneFilterRead->setEnabled(true);
-
+	
 }
 
 
@@ -772,7 +773,7 @@ void LibpointmatcherConvergenceDialog::acceptKdTreeOption()
 	std::string searchTypeValue = "1";
 	if (kdTreeBrute->isChecked()) { searchTypeValue = "0"; }
 	if (kdTreeTree->isChecked()) { searchTypeValue = "1"; }
-	if (kdTreeMaxDist->value() < 0.001) { maxDistValue = "inf"; }
+	if (kdTreeMaxDist->value() < 0.001) { maxDistValue = "5"; }
 
 	m_kdTree = PM::get().MatcherRegistrar.create(
 		"KDTreeMatcher",
@@ -866,6 +867,7 @@ void LibpointmatcherConvergenceDialog::initSliceList(std::vector<ccHObject*> ent
 	{
 		ccPointCloud* m_cloudRef = ccHObjectCaster::ToPointCloud(entities[0]);
 		refCloudName->addItem(GetEntityName(m_cloudRef));
+		m_cloudRef = 0;
 	}
 	else
 	{
@@ -878,6 +880,7 @@ void LibpointmatcherConvergenceDialog::initSliceList(std::vector<ccHObject*> ent
 		{
 			ccPointCloud* tempCloud = ccHObjectCaster::ToPointCloud(entities[i]);
 			m_sliceList.push_back(tempCloud);
+			m_sliceListIndex.push_back(i);
 			slicesCloudContainer->addItem(GetEntityName(tempCloud));
 		}
 	}
@@ -895,7 +898,7 @@ void LibpointmatcherConvergenceDialog::removeSlice() {
 	}
 
 	m_sliceList.erase(m_sliceList.begin() + currentSlice);
-
+	m_sliceListIndex.erase(m_sliceListIndex.begin() + currentSlice);
 
 	qDeleteAll(slicesCloudContainer->selectedItems());
 	slicesCloudContainer->setCurrentRow(0);
@@ -942,8 +945,12 @@ void LibpointmatcherConvergenceDialog::swapClouds()
 	//Object cc
 	ccPointCloud* sliceTemp = m_sliceList[currentSlice];
 	ccPointCloud* refTemp = m_cloudRef;
+	int sliceTempIndex = m_sliceListIndex[currentSlice];
+	int refTempIndex = m_cloudRefIndex;
 	m_sliceList[currentSlice] = refTemp;
+	m_sliceListIndex[currentSlice] = refTempIndex;
 	m_cloudRef = sliceTemp;
+	m_cloudRefIndex = sliceTempIndex;
 
 	verifySliceEnbaling();
 }
@@ -955,6 +962,7 @@ void LibpointmatcherConvergenceDialog::changeSlicePositionUp()
 	}
 	//Object cc
 	std::iter_swap(m_sliceList.begin() + currentSlice, m_sliceList.begin() + currentSlice - 1);
+	std::iter_swap(m_sliceListIndex.begin() + currentSlice, m_sliceListIndex.begin() + currentSlice - 1);
 
 	//Gui
 	QListWidgetItem* currentItem = slicesCloudContainer->takeItem(currentSlice - 1);
@@ -971,6 +979,7 @@ void LibpointmatcherConvergenceDialog::changeSlicePositionDown()
 	}
 	//Object cc
 	std::iter_swap(m_sliceList.begin() + currentSlice, m_sliceList.begin() + currentSlice + 1);
+	std::iter_swap(m_sliceListIndex.begin() + currentSlice, m_sliceListIndex.begin() + currentSlice + 1);
 
 	//Gui
 	QListWidgetItem* currentItem = slicesCloudContainer->takeItem(currentSlice + 1);

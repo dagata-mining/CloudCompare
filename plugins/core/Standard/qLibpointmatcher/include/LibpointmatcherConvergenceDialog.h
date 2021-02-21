@@ -104,6 +104,12 @@ public:
 	//! Return The cloud index to be transformed
 	int getCurrentreadIndexEntity() const { return m_currentReadEntityIndex; }
 
+	//! Return the slice list
+	std::vector<ccPointCloud*> getSliceList() const { return m_sliceList; }
+
+	//! Return the slice list Indexes
+	std::vector<int> getSliceListIndexes() const { return m_sliceListIndex; }
+
 	//! change the filter options
 	void acceptFilterOptions(bool);
 	//! changing the selected item on the filters list disabling and enabling position change and deleting filter
@@ -164,6 +170,7 @@ protected: //members
 
 
 	ccPointCloud* m_cloudRef;
+	int m_cloudRefIndex;
 	ccPointCloud* m_cloudRead;
 
 	ccPointCloud* m_corePointsCloud;
@@ -189,6 +196,7 @@ protected: //members
 	bool m_noFilter;
 
 	std::vector<ccPointCloud*> m_sliceList;
+	std::vector<int> m_sliceListIndex;
 	std::shared_ptr<PM::Matcher> m_kdTree;
 	std::shared_ptr<PM::OutlierFilter> m_outlierFilter;
 	std::shared_ptr<PM::ErrorMinimizer> m_errorMinimizer;

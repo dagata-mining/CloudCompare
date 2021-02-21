@@ -39,11 +39,11 @@ public:
 						QString& errorMessage,
 						QWidget* parentWidget/*=nullptr*/,
 						ccMainAppInterface* app/*=nullptr*/);
-	static ccGLMatrixd& ICP(const LibpointmatcherOutlierDialog& dlg,
+	static ccGLMatrixd ICP(const LibpointmatcherOutlierDialog& dlg,
 		QString& errorMessage,
 		QWidget* parentWidget/*=nullptr*/,
 		ccMainAppInterface* app/*=nullptr*/);
-	static ccGLMatrixd& convergence(const LibpointmatcherConvergenceDialog& dlg,
+	static std::vector<ccGLMatrixd> convergence(const LibpointmatcherConvergenceDialog& dlg,
 		QString& errorMessage,
 		QWidget* parentWidget/*=nullptr*/,
 		ccMainAppInterface* app/*=nullptr*/);

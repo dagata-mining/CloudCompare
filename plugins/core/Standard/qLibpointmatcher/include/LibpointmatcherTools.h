@@ -119,7 +119,10 @@ public:
 	static CCCoreLib::ReferenceCloud* pointmatcherToCC(DP* cloud, ccPointCloud* ref);
 	// Subsamples from Libpointmatcher
 	static DP filter(DP cloud, std::vector< std::shared_ptr<PM::DataPointsFilter>> filters, std::shared_ptr<PM::DataPointsFilter> normalParams, std::vector<bool> needNormals, bool hasNormalDescriptors );
-
+	//! returns the bounds of a DP cloud (Xmax,Ymax,Zmax,Xmin,Ymin,Zmin)
+	static std::vector<float> getBounds(DP* cloud);
+	//! Returns a filter based on the bounds and the extra padding 
+	static std::shared_ptr<PM::DataPointsFilter> boundsFilter(std::vector<float>, bool, float);
 	
 };
 

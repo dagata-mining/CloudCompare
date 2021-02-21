@@ -481,7 +481,7 @@ bool LibpointmatcherProcess::Subsample(const LibpointmatcherDialog& dlg, ccHObje
 	// Filtering with DP format
 	DP filteredCloud;
 	filteredCloud = LibpointmatcherTools::filter(convertedCloud, dlg.getFilters(), dlg.getNormalParams(),dlg.needNormals(), hasNormalDescriptors);
-	if (!filteredCloud.getNbPoints()>0)
+	if (filteredCloud.getNbPoints()<1)
 	{
 		errorMessage = "Failed to compute!";
 		return true;
@@ -527,7 +527,7 @@ ccGLMatrixd LibpointmatcherProcess::convertingOutputMatrix(Eigen::MatrixXf m)
 }
 
 
-ccGLMatrixd& LibpointmatcherProcess::ICP(const LibpointmatcherOutlierDialog& dlg, QString& errorMessage, QWidget* parentWidget/*=nullptr*/, ccMainAppInterface* app/*=nullptr*/)
+ccGLMatrixd LibpointmatcherProcess::ICP(const LibpointmatcherOutlierDialog& dlg, QString& errorMessage, QWidget* parentWidget/*=nullptr*/, ccMainAppInterface* app/*=nullptr*/)
 {
 	errorMessage.clear();
 
@@ -535,7 +535,8 @@ ccGLMatrixd& LibpointmatcherProcess::ICP(const LibpointmatcherOutlierDialog& dlg
 	if (!dlg.getCloudRead()->isA(CC_TYPES::POINT_CLOUD) && !dlg.getCloudRef()->isA(CC_TYPES::POINT_CLOUD))
 	{
 		assert(false);
-		return ccGLMatrixd();
+
+		return  ccGLMatrixd();
 	}
 	//start the job
 	bool error = false;
@@ -660,23 +661,18 @@ ccGLMatrixd& LibpointmatcherProcess::ICP(const LibpointmatcherOutlierDialog& dlg
 	}
 
 	ccGLMatrixd transformation = convertingOutputMatrix(T);
-	ccGLMatrixd& transi = transformation;
+	
 	
 
 	ccLog::Print(QString(trans));
-	return transi;
+	return transformation;
 }
 
-ccGLMatrixd& LibpointmatcherProcess::convergence(const LibpointmatcherConvergenceDialog& dlg, QString& errorMessage, QWidget* parentWidget/*=nullptr*/, ccMainAppInterface* app/*=nullptr*/)
+std::vector<ccGLMatrixd> LibpointmatcherProcess::convergence(const LibpointmatcherConvergenceDialog& dlg, QString& errorMessage, QWidget* parentWidget/*=nullptr*/, ccMainAppInterface* app/*=nullptr*/)
 {
 	errorMessage.clear();
-
-	//get the clouds in the right order
-	if (!dlg.getCloudRead()->isA(CC_TYPES::POINT_CLOUD) && !dlg.getCloudRef()->isA(CC_TYPES::POINT_CLOUD))
-	{
-		assert(false);
-		return ccGLMatrixd();
-	}
+	PM::TransformationParameters Trelative;
+	std::vector<ccGLMatrixd> TabsoluteList;
 	//start the job
 	bool error = false;
 
@@ -684,24 +680,10 @@ ccGLMatrixd& LibpointmatcherProcess::convergence(const LibpointmatcherConvergenc
 	bool refHasNormalDescriptors;
 	bool readHasNormalDescriptors;
 
-	ccLog::Print(QString("Prior To transforming to DP "));
-
+	
 	//Transforming to libpointmatcher format
-	DP convertedCloudRead;
+	
 	DP convertedCloudRef;
-	if (dlg.getCloudRead()->hasNormals() && dlg.needAtLeastOneNormalRead() && dlg.useAtLeastOneNormalRead())
-	{
-		//Has Normals and will be added
-		convertedCloudRead = LibpointmatcherTools::ccNormalsToPointMatcher(dlg.getCloudRead());
-		readHasNormalDescriptors = true;
-	}
-	else
-	{
-		convertedCloudRead = LibpointmatcherTools::ccToPointMatcher(dlg.getCloudRead());
-		readHasNormalDescriptors = false;
-
-	}
-
 	if (dlg.getCloudRef()->hasNormals() && dlg.needAtLeastOneNormalRef() && dlg.useAtLeastOneNormalRef())
 	{
 		//Has Normals and will be added
@@ -712,50 +694,47 @@ ccGLMatrixd& LibpointmatcherProcess::convergence(const LibpointmatcherConvergenc
 	{
 		convertedCloudRef = LibpointmatcherTools::ccToPointMatcher(dlg.getCloudRef());
 		refHasNormalDescriptors = false;
-
 	}
 
-
-	// Apply Chain 
-	PM::ICP icp;
-	// Filters
-	// Ref
-	ccLog::Print(QString("Prior Applying Chain"));
+	//Subsampling the ref filter (To do only once)
+	PM::DataPointsFilters list;
+	list.init();
 
 	bool refHasNormalsDescriptorsIter = false;
 	for (int i = 0; i < dlg.getFiltersRef().size(); i++) {
 		if (dlg.getNeedNormalsRef(i) && !refHasNormalDescriptors)
 		{
 			//Enable Surface Creating 
-			icp.referenceDataPointsFilters.push_back(dlg.getNormalParams());
+			list.push_back(dlg.getNormalParams());
 			// Prevent from redoing the surface creating normals on the next iteration
 			refHasNormalsDescriptorsIter = true;
 		}
-		icp.referenceDataPointsFilters.push_back(dlg.getFiltersRef()[i]);
+		list.push_back(dlg.getFiltersRef()[i]);
 	}
 	// Because of the algorithm we need more than simple normals with descriptors such as densities, eigen etc.. 
 	if (!refHasNormalsDescriptorsIter && dlg.refCloudNeedNormalsICP()) {
-		icp.referenceDataPointsFilters.push_back(dlg.getNormalParams());
+		list.push_back(dlg.getNormalParams());
+	}
+	try
+	{
+		list.apply(convertedCloudRef); //cause an exception 
+	}
+	catch (std::exception e)
+	{
+		ccLog::Error(QString("The Filter Subsample for the reference due to Error: %1").arg(e.what()));
+		return TabsoluteList; // Kill the process
 	}
 
-	// Read
-	bool readHasNormalsDescriptorsIter = false;
+	// Starting the iteration loop through the different slices
+	DP convertedCloudSlice;
+	DP* convertedCloudSlicePtr;
+	PM::ICP icp;
+	PM::TransformationParameters Tcurrent=
+		PM::TransformationParameters::Identity(4, 4);
+	std::vector<ccPointCloud*> sliceList = dlg.getSliceList();
+	std::shared_ptr<PM::DataPointsFilter> refBoundsFilter;
 
-	for (int i = 0; i < dlg.getFiltersRead().size(); i++) {
-		if (dlg.getNeedNormalsRead(i) && !readHasNormalDescriptors)
-		{
-			//Enable Surface Creating 
-			icp.readingDataPointsFilters.push_back(dlg.getNormalParams());
-			// Prevent from redoing the surface creating normals on the next iteration
-			readHasNormalsDescriptorsIter = true;
-		}
-		icp.readingDataPointsFilters.push_back(dlg.getFiltersRead()[i]);
-	}
-	// Because of the algorithm we need more than simple normals with descriptors such as densities, eigen etc.. 
-	if (!readHasNormalsDescriptorsIter && dlg.readCloudNeedNormalsICP()) {
-		icp.readingDataPointsFilters.push_back(dlg.getNormalParams());
-	}
-
+	//Intiate ICP always the same data
 	//KD Tree Matcher
 	icp.matcher = dlg.getKdTree();
 
@@ -770,40 +749,90 @@ ccGLMatrixd& LibpointmatcherProcess::convergence(const LibpointmatcherConvergenc
 	{
 		icp.transformationCheckers.push_back(dlg.getCheckers()[i]);
 	}
+
 	// Inspectors Not useful but necessary for the ICP chain of Libpointmatcher
 	std::shared_ptr<PM::Inspector> nullInspect =
 		PM::get().InspectorRegistrar.create("NullInspector");
 	icp.inspector = nullInspect;
+
 	// Rigid Transformation, useless but necessary for the Libpointmatcher IP 
 	std::shared_ptr<PM::Transformation> rigidTrans =
 		PM::get().TransformationRegistrar.create("RigidTransformation");
 	icp.transformations.push_back(rigidTrans);
 
-	// Apply the transformation
-	PM::TransformationParameters T;
-	try
+	for (int i=0; i<sliceList.size();i++)
 	{
-		T = icp(convertedCloudRead, convertedCloudRef); //cause an exception 
+		//Reinitiate ICP
+		list.clear();
+		icp.referenceDataPointsFilters.clear();
+
+
+		//Transorming the slice to the DP format
+		if (sliceList[i]->hasNormals() && dlg.needAtLeastOneNormalRead() && dlg.useAtLeastOneNormalRead())
+		{
+			//Has Normals and will be added
+			convertedCloudSlice = LibpointmatcherTools::ccNormalsToPointMatcher(sliceList[i]);
+			readHasNormalDescriptors = true;
+		}
+		else
+		{
+			convertedCloudSlice = LibpointmatcherTools::ccToPointMatcher(sliceList[i]);
+			readHasNormalDescriptors = false;
+
+		}
+		
+		// Subsampling Slice
+		bool readHasNormalsDescriptorsIter = false;
+
+		for (int i = 0; i < dlg.getFiltersRead().size(); i++) {
+			if (dlg.getNeedNormalsRead(i) && !readHasNormalDescriptors)
+			{
+				//Enable Surface Creating 
+				list.push_back(dlg.getNormalParams());
+				// Prevent from redoing the surface creating normals on the next iteration
+				readHasNormalsDescriptorsIter = true;
+			}
+			list.push_back(dlg.getFiltersRead()[i]);
+		}
+		// Because of the algorithm we need more than simple normals with descriptors such as densities, eigen etc.. 
+		if (!readHasNormalsDescriptorsIter && dlg.readCloudNeedNormalsICP()) {
+			list.push_back(dlg.getNormalParams());
+		}
+		// Applying Filter to slice clouds
+		try
+		{
+			list.apply(convertedCloudSlice); //cause an exception 
+		}
+		catch (std::exception e)
+		{
+			ccLog::Error(QString("The Filter did not work at the segment: %1 due to Error: %2").arg(QString::number(i)).arg(e.what()));
+			return TabsoluteList; // Kill the process
+		}
+		// Applying transformation to slice
+		if (!rigidTrans->checkParameters(Tcurrent)) {
+			Tcurrent = rigidTrans->correctParameters(Tcurrent);
+		}
+		convertedCloudSlice = rigidTrans->compute(convertedCloudSlice, Tcurrent);
+
+		// Applying Bound filter to the Ref Based on the slice and extra padding
+		convertedCloudSlicePtr = &convertedCloudSlice;
+		refBoundsFilter = LibpointmatcherTools::boundsFilter(LibpointmatcherTools::getBounds(convertedCloudSlicePtr), false, 2.0);
+		icp.referenceDataPointsFilters.push_back(refBoundsFilter);
+		
+		try
+		{
+			Trelative = icp(convertedCloudSlice, convertedCloudRef); //cause an exception 
+		}
+		catch (std::exception e)
+		{
+			ccLog::Error(QString("The ICP did not work at the segment: %1 due to Error: %2").arg(QString::number(i)).arg(e.what()));
+			return TabsoluteList; // Kill the process
+		}
+		Tcurrent = Tcurrent * Trelative;
+		TabsoluteList.push_back(convertingOutputMatrix(Tcurrent));
+		
 	}
-
-	catch (std::exception e)
-	{
-		ccLog::Error(e.what());
-		errorMessage = "Failed to compute!";
-		error = true;
-		return ccGLMatrixd();
-	}
-	QString trans;
-	for (int i = 0; i < 4; i++)
-	{
-		trans.append(QString::number(T(i, 0)) + " " + QString::number(T(i, 1)) + " " + QString::number(T(i, 2)) + " " + QString::number(T(i, 3)) + "\n");
-	}
-
-	ccGLMatrixd transformation = convertingOutputMatrix(T);
-	ccGLMatrixd& transi = transformation;
-
-
-	ccLog::Print(QString(trans));
-	return transi;
+	ccLog::Print(QString("Slices ICP converged Properly"));
+	return TabsoluteList;
 }
 

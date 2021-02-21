@@ -21,7 +21,7 @@
    <item>
     <widget class="QTabWidget" name="filterTabWidget">
      <property name="currentIndex">
-      <number>7</number>
+      <number>4</number>
      </property>
      <widget class="QWidget" name="filterParams">
       <property name="accessibleName">
@@ -3079,7 +3079,7 @@
          <double>1.000000000000000</double>
         </property>
         <property name="value">
-         <double>1000.000000000000000</double>
+         <double>5.000000000000000</double>
         </property>
        </widget>
        <widget class="QLabel" name="kdTreeMaxDistTitle">
@@ -4030,6 +4030,9 @@
        </property>
       </widget>
       <widget class="QToolButton" name="switchUpSliceButton">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
        <property name="geometry">
         <rect>
          <x>540</x>
@@ -4163,16 +4166,48 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>buttonBox</sender>
+   <signal>accepted()</signal>
+   <receiver>LibpointmatcherConvergenceDialog</receiver>
+   <slot>accept()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>384</x>
+     <y>479</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>384</x>
+     <y>250</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>buttonBox</sender>
+   <signal>rejected()</signal>
+   <receiver>LibpointmatcherConvergenceDialog</receiver>
+   <slot>reject()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>384</x>
+     <y>479</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>384</x>
+     <y>250</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <buttongroups>
-  <buttongroup name="buttonGroup_7"/>
-  <buttongroup name="buttonGroup_5"/>
-  <buttongroup name="buttonGroup"/>
+  <buttongroup name="buttonGroup_4"/>
   <buttongroup name="buttonGroup_3"/>
-  <buttongroup name="buttonGroup_6"/>
   <buttongroup name="buttonGroup_10"/>
+  <buttongroup name="buttonGroup_7"/>
   <buttongroup name="buttonGroup_2"/>
   <buttongroup name="buttonGroup_8"/>
-  <buttongroup name="buttonGroup_4"/>
+  <buttongroup name="buttonGroup_5"/>
+  <buttongroup name="buttonGroup"/>
+  <buttongroup name="buttonGroup_6"/>
  </buttongroups>
 </ui>
