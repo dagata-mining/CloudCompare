@@ -989,12 +989,11 @@ std::shared_ptr<PM::DataPointsFilter> LibpointmatcherTools::boundsFilter(std::ve
 {
 	std::string removeInsideValue = "0";
 	if (removeInside) { removeInsideValue = "1"; }
-
 	std::shared_ptr<PM::DataPointsFilter> filterParams=
 		PM::get().DataPointsFilterRegistrar.create(
 			"BoundingBoxDataPointsFilter",
 			{
-				{"xMax", std::to_string(bounds[0] +padding) },
+				{"xMax", std::to_string(bounds[0] + padding) },
 				{"yMax", std::to_string(bounds[1] + padding)},
 				{"zMax", std::to_string(bounds[2] + padding)},
 				{"xMin", std::to_string(bounds[3] - padding)},
@@ -1003,6 +1002,7 @@ std::shared_ptr<PM::DataPointsFilter> LibpointmatcherTools::boundsFilter(std::ve
 				{"removeInside", removeInsideValue},
 			}
 	);
+	return filterParams;
 
 }
 

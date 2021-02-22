@@ -42,9 +42,10 @@ public:
 	LibpointmatcherConvergenceDialog(std::vector<ccHObject*> entities, ccMainAppInterface* app);
 
 	//! Returns cloud #1
-	ccPointCloud* getCloudRef() const { return m_cloudRef; }
+	ccPointCloud* getCloudRefConvergence() const { return m_cloudRefConvergence; }
 	//! Returns cloud #2
 	ccPointCloud* getCloudRead() const { return m_cloudRead; }
+
 
 	//! Do we use existing normals will tell to convert to DP with normals descriptors 
 	std::vector<bool> useExistingNormalsRef() const { return m_useExistingNormalsRef; }
@@ -169,7 +170,7 @@ protected: //members
 	ccMainAppInterface* m_app;
 
 
-	ccPointCloud* m_cloudRef;
+	ccPointCloud* m_cloudRefConvergence;
 	int m_cloudRefIndex;
 	ccPointCloud* m_cloudRead;
 

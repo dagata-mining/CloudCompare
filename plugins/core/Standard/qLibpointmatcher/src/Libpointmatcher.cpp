@@ -91,30 +91,17 @@ QList<QAction *> Libpointmatcher::getActions()
 							m_actionConvergence};
 }
 
-void Libpointmatcher::applyTransformationEntity(ccGLMatrixd transMat, int entityIndex)
+void Libpointmatcher::applyTransformationEntity(ccGLMatrixd transMat, ccHObject* entity)
 {
 	//if the transformation is partly converted to global shift/scale
 	bool updateGlobalShiftAndScale = false;
 	double scaleChange = 1.0;
 	CCVector3d shiftChange(0, 0, 0);
 
-
-	//we must backup 'm_selectedEntities' as removeObjectTemporarilyFromDBTree can modify it!
 	ccHObject::Container selectedEntities = m_selectedEntities;
 
-	//special case: the selected entity is a group
-	//if (selectedEntities.size() == 1 && selectedEntities.front()->isA(CC_TYPES::HIERARCHY_OBJECT))
-	//{
-	//	ccHObject* ent = selectedEntities.front();
-	//	m_selectedEntities.clear();
-	//	for (unsigned i=0; i<ent->getChildrenNumber(); ++i)
-	//	{
-	//		selectedEntities.push_back(ent->getChild(i));
-	//	}
-	//}
-
 	bool firstCloud = true;
-	ccHObject *entity = selectedEntities[entityIndex]; //warning, getSelectedEntites may change during this loop!
+	 //warning, getSelectedEntites may change during this loop!
 
 		//we don't test primitives (it's always ok while the 'vertices lock' test would fail)
 	if (!entity->isKindOf(CC_TYPES::PRIMITIVE))
@@ -241,11 +228,11 @@ void Libpointmatcher::applyTransformationEntity(ccGLMatrixd transMat, int entity
 	m_app->putObjectBackIntoDBTree(entity, objContext);
 
 	 
-
+	m_selectedEntities = selectedEntities;
 	ccLog::Print("[ApplyTransformation] Applied transformation matrix:");
 	ccLog::Print(transMat.toString(12, ' ')); //full precision
 	ccLog::Print("Hint: copy it (CTRL+C) and apply it - or its inverse - on any entity with the 'Edit > Apply transformation' tool");
-
+	
 	m_app->refreshAll();
 }
 
@@ -365,10 +352,10 @@ void Libpointmatcher::doActionICP()
 	pDlg.setWindowTitle("Libpointmatcher");
 	pDlg.show();
 
-	if (!pDlg.wasCanceled()) 
+	if (!pDlg.wasCanceled())
 	{
 		ccGLMatrixd mat = LibpointmatcherProcess::ICP(dlgICP, errorMessage, m_app->getMainWindow(), m_app);
-		applyTransformationEntity(mat,dlgICP.getCurrentreadIndexEntity());
+		applyTransformationEntity(mat, m_selectedEntities[dlgICP.getCurrentreadIndexEntity()]);
 		
 	}
 	if (m_app)
@@ -417,8 +404,7 @@ void Libpointmatcher::doActionConvergence()
 	dlgConvergence.acceptKdTreeOption();
 	dlgConvergence.acceptMinimizerOption();
 	dlgConvergence.acceptCheckerOption();
-	ccLog::Print(QString("After Checker"));
-
+	
 
 	QString errorMessage;
 	ccPointCloud* outputCloud = nullptr; //only necessary for the command line version in fact
@@ -426,15 +412,19 @@ void Libpointmatcher::doActionConvergence()
 	pDlg.setWindowTitle("Libpointmatcher");
 	pDlg.show();
 
+	
+
 	if (!pDlg.wasCanceled())
 	{
+		
 		std::vector<ccGLMatrixd> transformationList =
 			LibpointmatcherProcess::convergence(dlgConvergence, errorMessage, m_app->getMainWindow(), m_app);
+		ccLog::Error(QString::number(transformationList.size()));
 		if (transformationList.size() > 0)
 		{
 			for (int i = 0; i < transformationList.size(); i++)
 			{
-				applyTransformationEntity(transformationList[i], dlgConvergence.getSliceListIndexes()[i]);
+				applyTransformationEntity(transformationList[i], m_selectedEntities[dlgConvergence.getSliceListIndexes()[i]]);				
 			}
 		}
 		else return;

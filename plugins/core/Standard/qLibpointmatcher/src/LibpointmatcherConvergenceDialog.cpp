@@ -64,7 +64,7 @@ LibpointmatcherConvergenceDialog::LibpointmatcherConvergenceDialog(std::vector<c
 	, m_currentFilterName("")
 	, m_filterItemRef(0)
 	, m_filterItemRead(0)
-	, m_cloudRef(nullptr)
+	, m_cloudRefConvergence(nullptr)
 	, m_cloudRead(nullptr)
 	, m_cloudRefIndex(0)
 	, m_refFilterInit(false)
@@ -865,9 +865,9 @@ void LibpointmatcherConvergenceDialog::initSliceList(std::vector<ccHObject*> ent
 {
 	if (entities[0]->isA(CC_TYPES::POINT_CLOUD))
 	{
-		ccPointCloud* m_cloudRef = ccHObjectCaster::ToPointCloud(entities[0]);
-		refCloudName->addItem(GetEntityName(m_cloudRef));
-		m_cloudRef = 0;
+		m_cloudRefConvergence = ccHObjectCaster::ToPointCloud(entities[0]);
+		refCloudName->addItem(GetEntityName(m_cloudRefConvergence));
+		m_cloudRefIndex = 0;
 	}
 	else
 	{
@@ -944,12 +944,12 @@ void LibpointmatcherConvergenceDialog::swapClouds()
 	
 	//Object cc
 	ccPointCloud* sliceTemp = m_sliceList[currentSlice];
-	ccPointCloud* refTemp = m_cloudRef;
+	ccPointCloud* refTemp = m_cloudRefConvergence;
 	int sliceTempIndex = m_sliceListIndex[currentSlice];
 	int refTempIndex = m_cloudRefIndex;
 	m_sliceList[currentSlice] = refTemp;
 	m_sliceListIndex[currentSlice] = refTempIndex;
-	m_cloudRef = sliceTemp;
+	m_cloudRefConvergence = sliceTemp;
 	m_cloudRefIndex = sliceTempIndex;
 
 	verifySliceEnbaling();
@@ -998,10 +998,10 @@ int LibpointmatcherConvergenceDialog::getCurrentFilterTabWidget()
 
 void LibpointmatcherConvergenceDialog::setCloud1Visibility(bool state)
 {
-	if (m_cloudRef)
+	if (m_cloudRefConvergence)
 	{
-		m_cloudRef->setVisible(state);
-		m_cloudRef->prepareDisplayForRefresh();
+		m_cloudRefConvergence->setVisible(state);
+		m_cloudRefConvergence->prepareDisplayForRefresh();
 	}
 	if (m_app)
 	{

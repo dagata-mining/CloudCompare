@@ -62,7 +62,7 @@ private:
 	//! Convergence launching
 	void doActionConvergence();
 	//! Applying Transformation 
-	void applyTransformationEntity(ccGLMatrixd mat, int entityIndex);
+	void applyTransformationEntity(ccGLMatrixd, ccHObject*);
 	//! Number of Point Clouds
 	int numberOfPointCloudEntity(std::vector<ccHObject*>);
 	
