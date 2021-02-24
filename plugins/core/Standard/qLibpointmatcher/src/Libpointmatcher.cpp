@@ -422,9 +422,14 @@ void Libpointmatcher::doActionConvergence()
 		ccLog::Error(QString::number(transformationList.size()));
 		if (transformationList.size() > 0)
 		{
+			ccGLMatrixd T;
 			for (int i = 0; i < transformationList.size(); i++)
 			{
-				applyTransformationEntity(transformationList[i], m_selectedEntities[dlgConvergence.getSliceListIndexes()[i]]);				
+				T= transformationList[i];
+				applyTransformationEntity(T, m_selectedEntities[dlgConvergence.getSliceListIndexes()[i]]);				
+				bool a = LibpointmatcherProcess::Compute(dlgConvergence, errorMessage, dlgConvergence.getSliceList()[i], dlgConvergence.getCloudRefConvergence(), true, m_app->getMainWindow(), m_app);
+				applyTransformationEntity(T.inverse(), m_selectedEntities[dlgConvergence.getSliceListIndexes()[i]]);
+				
 			}
 		}
 		else return;

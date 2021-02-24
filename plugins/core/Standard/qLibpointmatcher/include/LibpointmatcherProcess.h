@@ -49,7 +49,13 @@ public:
 		ccMainAppInterface* app/*=nullptr*/);
 	// Transfrom T eigen matrix to a CCGLMatrix
 	static ccGLMatrixd convertingOutputMatrix(Eigen::MatrixXf m);
-
+	static bool Compute(const LibpointmatcherConvergenceDialog& dlg,
+		QString& errorMessage,
+		ccPointCloud* cloud1,
+		ccPointCloud* cloud2,
+		bool allowDialogs,
+		QWidget* parentWidget = nullptr,
+		ccMainAppInterface* app = nullptr);
 
 };
 
