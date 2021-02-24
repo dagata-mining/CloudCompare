@@ -972,7 +972,7 @@ void LibpointmatcherConvergenceDialog::changeSlicePositionUp()
 	//Gui
 	QListWidgetItem* currentItem = slicesCloudContainer->takeItem(currentSlice - 1);
 	slicesCloudContainer->insertItem(currentSlice, currentItem);
-	slicesCloudContainer->setCurrentRow(currentSlice);
+	slicesCloudContainer->setCurrentRow(currentSlice-1);
 	verifySliceEnbaling(); 
 };
 
@@ -989,7 +989,7 @@ void LibpointmatcherConvergenceDialog::changeSlicePositionDown()
 	//Gui
 	QListWidgetItem* currentItem = slicesCloudContainer->takeItem(currentSlice + 1);
 	slicesCloudContainer->insertItem(currentSlice, currentItem);
-	slicesCloudContainer->setCurrentRow(currentSlice);
+	slicesCloudContainer->setCurrentRow(currentSlice+1);
 	verifySliceEnbaling();
 
 };
