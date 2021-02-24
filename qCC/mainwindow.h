@@ -471,6 +471,9 @@ private:
 	//! Apply transformation to the selected entities
 	void applyTransformation(const ccGLMatrixd& transMat);
 
+	//! Apply transformation to the selected entities
+	void applyTransformationEntity(const ccGLMatrixd& transMat, int entityIndex);
+
 	//! Creates point clouds from multiple 'components'
 	void createComponentsClouds(ccGenericPointCloud* cloud,
 								CCCoreLib::ReferenceCloudContainer& components,

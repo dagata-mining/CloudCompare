@@ -22,6 +22,8 @@ if( ${OPTION_USE_SHAPE_LIB} )
 	target_link_libraries( ${PROJECT_NAME} shapelib )	
 endif()
 
+
+
 target_link_libraries( ${PROJECT_NAME}
 	QCC_DB_LIB
 )

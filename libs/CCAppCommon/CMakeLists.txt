@@ -9,7 +9,9 @@ add_subdirectory( ui )
 
 target_link_libraries( ${PROJECT_NAME}
 	CCPluginAPI
+	
 )
+
 
 target_compile_definitions( ${PROJECT_NAME} PRIVATE CCAPPCOMMON_LIBRARY_BUILD )
 
@@ -27,6 +29,8 @@ if( OPTION_SUPPORT_GAMEPADS )
 
 	target_link_libraries( ${PROJECT_NAME} Qt5::Gamepad )
 endif()
+
+
 
 if( OPTION_SUPPORT_3DCONNEXION_DEVICES )
 	target_link_3DXWARE( ${PROJECT_NAME} )

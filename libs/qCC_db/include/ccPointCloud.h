@@ -459,6 +459,8 @@ public: //other methods
 	const ccColor::Rgba& getPointColor(unsigned pointIndex) const override;
 	const CompressedNormType& getPointNormalIndex(unsigned pointIndex) const override;
 	const CCVector3& getPointNormal(unsigned pointIndex) const override;
+
+
 	CCCoreLib::ReferenceCloud* crop(const ccBBox& box, bool inside = true) override;
 	void scale(PointCoordinateType fx, PointCoordinateType fy, PointCoordinateType fz, CCVector3 center = CCVector3(0,0,0)) override;
 	/** \warning if removeSelectedPoints is true, any attached octree will be deleted. **/
@@ -732,7 +734,11 @@ public: //other methods
 	//! Exports the specified normal dimension(s) to scalar field(s)
 	bool exportNormalToSF(bool exportDims[3]);
 
-	
+	//! Release VBOs
+	void releaseVBOs();
+
+	//! Returns the VBOs size (if any)
+	size_t vboSize() const;
 
 protected:
 
@@ -775,8 +781,6 @@ protected: // VBO
 	//! Init/updates VBOs
 	bool updateVBOs(const CC_DRAW_CONTEXT& context, const glDrawParams& glParams);
 
-	//! Release VBOs
-	void releaseVBOs();
 
 	class VBO : public QGLBuffer
 	{

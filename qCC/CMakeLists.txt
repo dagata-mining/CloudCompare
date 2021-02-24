@@ -8,6 +8,7 @@ include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/db_tree )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/ui_templates )
 include_directories( ${CMAKE_CURRENT_BINARY_DIR} )
 
+
 file( GLOB header_list *.h  )
 file( GLOB source_list *.cpp )
 
@@ -23,6 +24,7 @@ add_subdirectory( extern/QCustomPlot EXCLUDE_FROM_ALL )
 
 qt5_wrap_ui( generated_ui_list ${ui_list} )
 qt5_add_resources( generated_qrc_list ${qrc_list} )
+
 
 if( MSVC )
 	# App icon with MSVC
