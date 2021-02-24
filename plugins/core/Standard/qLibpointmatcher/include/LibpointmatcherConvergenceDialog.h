@@ -163,6 +163,7 @@ protected:
 	void changeSlicePositionUp();
 	void changeSlicePositionDown();
 	void removeSlice();
+	void checkSliceNormals();
 
 
 protected: //members

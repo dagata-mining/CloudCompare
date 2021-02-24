@@ -99,12 +99,16 @@ LibpointmatcherConvergenceDialog::LibpointmatcherConvergenceDialog(std::vector<c
 	connect(slicesCloudContainer, &QListWidget::currentItemChanged, this, &LibpointmatcherConvergenceDialog::verifySliceEnbaling);
 	connect(slicesCloudContainer , &QListWidget::itemClicked, this, &LibpointmatcherConvergenceDialog::verifySliceEnbaling);
 
+	//Tabs
+	connect(filterTabWidget, &QTabWidget::currentChanged, this, &LibpointmatcherConvergenceDialog::checkSliceNormals);
+
 	// Set up on initialization 
 	listFiltersRef->setCurrentRow(0);
 	selectingFilterItemRef();
 	listFiltersRead->setCurrentRow(0);
 	selectingFilterItemRead();
 	initSliceList(entities);
+	checkSliceNormals();
 }
 
 void LibpointmatcherConvergenceDialog::disableFilterListButtonsRef()
@@ -884,7 +888,8 @@ void LibpointmatcherConvergenceDialog::initSliceList(std::vector<ccHObject*> ent
 			slicesCloudContainer->addItem(GetEntityName(tempCloud));
 		}
 	}
-	
+
+
 	slicesCloudContainer->setCurrentRow(0);
 	refCloudName->setCurrentRow(0);
 	verifySliceEnbaling();
@@ -1021,6 +1026,34 @@ void LibpointmatcherConvergenceDialog::setCloud2Visibility(bool state)
 	{
 		m_app->refreshAll();
 		m_app->updateUI();
+	}
+}
+
+void LibpointmatcherConvergenceDialog::checkSliceNormals()
+{
+	if (filterTabWidget->currentIndex() == 8)
+	{
+		bool n = true;
+		for (int i = 0; i < m_sliceList.size(); i++)
+		{
+			if (!m_sliceList[i]->hasNormals())
+			{
+				n = false;
+			}
+		}
+		if (m_sliceList.size() > 0)
+		{
+			calculateM3C2->setEnabled(n);
+			calculateM3C2->setChecked(n);
+			optionM3C2->setEnabled(n);
+		}
+		else
+		{
+			calculateM3C2->setEnabled(false);
+			calculateM3C2->setChecked(false);
+			optionM3C2->setEnabled(false);
+		}
+		
 	}
 }
 
