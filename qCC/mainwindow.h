@@ -40,6 +40,7 @@ class ccCameraParamEditDlg;
 class ccClippingBoxTool;
 class ccComparisonDlg;
 class ccDBRoot;
+class ccImageViewer;
 class ccDrawableObject;
 class ccGamepadManager;
 class ccGLWindow;
@@ -539,6 +540,8 @@ private:
 
 	Ui::MainWindow	*m_UI;
 	
+	ccImageViewer * m_ccImageViewer;
+
 	//DB & DB Tree
 	ccDBRoot* m_ccRoot;
 

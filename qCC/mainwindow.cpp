@@ -94,6 +94,7 @@
 #include "ccGraphicalMultipleSegmentationTool.h"
 #include "ccGraphicalTransformationTool.h"
 #include "ccItemSelectionDlg.h"
+#include "ccImageViewer.h"
 #include "ccLabelingDlg.h"
 #include "ccMatchScalesDlg.h"
 #include "ccNoiseFilterDlg.h"
@@ -272,6 +273,10 @@ MainWindow::MainWindow()
 		connect(m_ccRoot, &ccDBRoot::dbIsEmpty,           [&]() { updateUIWithSelection(); updateMenus(); }); //we don't call updateUI because there's no need to update the properties dialog
 		connect(m_ccRoot, &ccDBRoot::dbIsNotEmptyAnymore, [&]() { updateUIWithSelection(); updateMenus(); }); //we don't call updateUI because there's no need to update the properties dialog
 	}
+	//image-viewer
+	{
+		m_ccImageViewer = new ccImageViewer(m_UI->imageLabel,m_UI->scrollAreaImage, this);
+	}
 
 	//MDI Area
 	{
@@ -329,6 +334,8 @@ MainWindow::~MainWindow()
 	{
 		getGLWindow(i)->setSceneDB(nullptr);
 	}
+	delete m_ccImageViewer;
+
 	m_cpeDlg = nullptr;
 	m_gsTool = nullptr;
 	m_gmsTool = nullptr;
@@ -340,6 +347,7 @@ MainWindow::~MainWindow()
 	m_plpDlg = nullptr;
 	m_pprDlg = nullptr;
 	m_pfDlg = nullptr;
+	m_ccImageViewer = nullptr;
 
 	//release all 'overlay' dialogs
 	while (!m_mdiDialogs.empty())

@@ -39,7 +39,7 @@
      <x>0</x>
      <y>0</y>
      <width>1024</width>
-     <height>31</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -512,8 +512,8 @@
   <widget class="QDockWidget" name="DockableDBTree">
    <property name="minimumSize">
     <size>
-     <width>146</width>
-     <height>175</height>
+     <width>164</width>
+     <height>188</height>
     </size>
    </property>
    <property name="floating">
@@ -566,7 +566,13 @@ QTreeView::branch:open:has-children:has-siblings  {
        <property name="selectionMode">
         <enum>QAbstractItemView::ExtendedSelection</enum>
        </property>
+       <property name="indentation">
+        <number>20</number>
+       </property>
        <property name="uniformRowHeights">
+        <bool>true</bool>
+       </property>
+       <property name="itemsExpandable">
         <bool>true</bool>
        </property>
       </widget>
@@ -735,7 +741,7 @@ QTreeView::branch:open:has-children:has-siblings  {
    <property name="minimumSize">
     <size>
      <width>133</width>
-     <height>164</height>
+     <height>188</height>
     </size>
    </property>
    <property name="floating">
@@ -781,6 +787,56 @@ QTreeView::branch:open:has-children:has-siblings  {
        <attribute name="headerDefaultSectionSize">
         <number>200</number>
        </attribute>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+  </widget>
+  <widget class="QDockWidget" name="DockableImage">
+   <property name="minimumSize">
+    <size>
+     <width>146</width>
+     <height>175</height>
+    </size>
+   </property>
+   <property name="floating">
+    <bool>false</bool>
+   </property>
+   <property name="features">
+    <set>QDockWidget::DockWidgetFloatable|QDockWidget::DockWidgetMovable</set>
+   </property>
+   <property name="windowTitle">
+    <string>ImageViewer</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>1</number>
+   </attribute>
+   <widget class="QWidget" name="DockableImageViewer">
+    <layout class="QVBoxLayout" name="_2">
+     <item>
+      <widget class="QScrollArea" name="scrollAreaImage">
+       <property name="widgetResizable">
+        <bool>true</bool>
+       </property>
+       <widget class="QWidget" name="scrollAreaWidgetContents">
+        <property name="geometry">
+         <rect>
+          <x>0</x>
+          <y>0</y>
+          <width>251</width>
+          <height>133</height>
+         </rect>
+        </property>
+        <layout class="QVBoxLayout" name="verticalLayout">
+         <item>
+          <widget class="QLabel" name="imageLabel">
+           <property name="text">
+            <string>TextLabel</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
       </widget>
      </item>
     </layout>
@@ -1150,20 +1206,19 @@ QTreeView::branch:open:has-children:has-siblings  {
    </property>
    <property name="shortcut">
     <string>T</string>
-   </property>  
+   </property>
   </action>
   <action name="actionSegmentMultiple">
-    <property name="icon">
-      <iconset resource="../icons.qrc">
-        <normaloff>:/CC/images/ccCropTool.png</normaloff>:/CC/images/ccCropTool.png
-      </iconset>
-    </property>
-    <property name="text">
-      <string>Segment Multiple</string>
-    </property>
-    <property name="shortcut">
-      <string>T</string>
-    </property>
+   <property name="icon">
+    <iconset resource="../icons.qrc">
+     <normaloff>:/CC/images/ccCropTool.png</normaloff>:/CC/images/ccCropTool.png</iconset>
+   </property>
+   <property name="text">
+    <string>Segment Multiple</string>
+   </property>
+   <property name="shortcut">
+    <string>T</string>
+   </property>
   </action>
   <action name="actionTranslateRotate">
    <property name="checkable">
@@ -2386,7 +2441,7 @@ QTreeView::branch:open:has-children:has-siblings  {
    </property>
    <property name="shortcut">
     <string>X</string>
-   </property>   
+   </property>
   </action>
   <action name="actionEditGlobalShiftAndScale">
    <property name="text">
@@ -2547,7 +2602,7 @@ QTreeView::branch:open:has-children:has-siblings  {
    </property>
    <property name="shortcut">
     <string>E</string>
-   </property>   
+   </property>
   </action>
   <action name="actionInterpolateColors">
    <property name="text">

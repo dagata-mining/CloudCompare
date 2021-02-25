@@ -578,6 +578,8 @@ void LibpointmatcherOutlierDialog::acceptFilterOptions(bool ref)
 		//MaximumQuantileAxisFilter
 		std::string ratioValue = std::to_string(ratioQuantile->value());
 		std::string dimValue;
+		std::string removeBeyondValue = "1";
+		if (underQuantile->isChecked()) { removeBeyondValue = "0"; }
 		if (dimX_Quantile->isChecked()) { dimValue = "0"; }
 		else if (dimY_Quantile->isChecked()) { dimValue = "1"; }
 		else { dimValue = "2"; }
@@ -587,6 +589,7 @@ void LibpointmatcherOutlierDialog::acceptFilterOptions(bool ref)
 			{
 				{"dim", dimValue},
 				{"ratio", ratioValue},
+				{"removeBeyond", removeBeyondValue},
 			}
 		);
 		filterName = "QuantileRatio: " + ratioValue + " MaxQuantileOnAxisDataPointsFilter";
