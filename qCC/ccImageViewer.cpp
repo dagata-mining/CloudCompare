@@ -17,6 +17,7 @@
 
 #include "ccImageViewer.h"
 
+
 //Local
 #include "ccPersistentSettings.h"
 #include "mainwindow.h"
@@ -36,6 +37,7 @@
 #include <QTime>
 #include <QLabel>
 #include <Qbitmap>
+#include <QWheelEvent>
 
 //system
 #include <cassert>
@@ -46,16 +48,34 @@
 /***************
  *** Globals ***
  ***************/
-ccImageViewer::ccImageViewer(QLabel* label = nullptr, QScrollArea* scrollArea = nullptr, QWidget* parent = nullptr)
+ccImageViewer::ccImageViewer(QWidget* parent = nullptr)
+	:QGraphicsView(parent)
 {
-	QPixmap pixmap("C:/Users/Asus/Pictures/IMG_0008.PNG");
-	label->setPixmap(pixmap);
-	label->setMask(pixmap.mask());
-	scrollArea->setBackgroundRole(QPalette::Dark);
-	scrollArea->setVisible(true);
+	//connect(parent->imageViewer, &QAction::wheelEvent, this, &ccImageViewer::wheelEvent);
 	
+	setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+	setDragMode(QGraphicsView::ScrollHandDrag);
 	
-
+	QGraphicsPixmapItem *pixmapItem = new QGraphicsPixmapItem(QPixmap("C:/Users/Asus/Pictures/IMG_0007.PNG"));
+	pixmapItem->setTransformationMode(Qt::SmoothTransformation);
+	QGraphicsScene *scene = new QGraphicsScene();
+	scene->addItem(pixmapItem);
+	setScene(scene);
+	
 }
 
+void ccImageViewer::wheelEvent(QWheelEvent *event)
+{
+	if (event->delta() > 0)
+		scale(1.15, 1.15);
+	else
+		scale(0.9, 0.9);
+}
 
+void ccImageViewer::keyPressEvent(QKeyEvent* event)
+{
+	if (event->key() == Qt::Key_Left)
+		rotate(-90);
+	else if (event->key() == Qt::Key_Right)
+		rotate(90);
+}

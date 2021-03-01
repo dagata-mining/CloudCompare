@@ -1148,12 +1148,12 @@ bool LibpointmatcherProcess::Subsample(const LibpointmatcherDialog& dlg, ccHObje
 	if (cloud1->hasNormals() && dlg.needAtLeastOneNormal() && dlg.useAtLeastOneNormal())
 	{
 		//Has Normals and will be added
-		convertedCloud = LibpointmatcherTools::ccNormalsToPointMatcher(cloud1);
+		convertedCloud = LibpointmatcherTools::ccNormalsToPointMatcherSubsample(cloud1);
 		hasNormalDescriptors = true;
 	}
 	else
 	{
-		convertedCloud = LibpointmatcherTools::ccToPointMatcher(cloud1);
+		convertedCloud = LibpointmatcherTools::ccToPointMatcherSubsample(cloud1);
 		hasNormalDescriptors = false;
 		
 	}
@@ -1170,7 +1170,7 @@ bool LibpointmatcherProcess::Subsample(const LibpointmatcherDialog& dlg, ccHObje
 	}
 	DP* filteredCloudPtr = &filteredCloud;
 	//Transforming the Pointmatcher subsampled to a ref cloud
-	CCCoreLib::ReferenceCloud* subsampled = LibpointmatcherTools::pointmatcherToCC(filteredCloudPtr, cloud1);
+	CCCoreLib::ReferenceCloud* subsampled = LibpointmatcherTools::pointmatcherToCCSubsample(filteredCloudPtr, cloud1);
 
 	//Applying the ref cloud to a new generated point cloud
 	ccPointCloud* cloud1subsampled = static_cast<ccPointCloud*>(cloud1)->partialClone(subsampled);

@@ -948,6 +948,146 @@ CCCoreLib::ReferenceCloud* LibpointmatcherTools::pointmatcherToCC(DP* cloud, ccP
 	return newCloud;
 }
 
+DP LibpointmatcherTools::ccToPointMatcherSubsample(ccPointCloud* cloud)
+{
+	typedef DP::Label Label;
+	typedef DP::Labels Labels;
+	typedef DP::View View;
+
+	if (cloud->size() <= 0)
+		return DP();
+	Labels featLabels;
+	Labels descLabels;
+	std::vector<bool> isFeature;
+	featLabels.push_back(Label("x", 1));
+	isFeature.push_back(true);
+	featLabels.push_back(Label("y", 1));
+	isFeature.push_back(true);
+	featLabels.push_back(Label("z", 1));
+	isFeature.push_back(true);
+
+	featLabels.push_back(Label("i", 1));
+	isFeature.push_back(false);
+
+	//featLabels.push_back(Label("pad", 1));
+
+	DP cloudDP(featLabels, descLabels, cloud->size());
+	//cloudDP.getFeatureViewByName("pad").setConstant(1);
+	// fill cloud
+	View view(cloudDP.getFeatureViewByName("x"));
+	const CCVector3* P3D;
+
+	int cloudSize = static_cast<int>(cloud->size());
+#if defined(_OPENMP)
+#pragma omp parallel for
+#endif
+	for (int i = 0; i < cloudSize; ++i)
+	{
+		P3D = cloud->getPoint(i);
+		view(0, i) = P3D->x;
+		view(1, i) = P3D->y;
+		view(2, i) = P3D->z;
+		view(3, i) = i;
+
+	}
+
+	return cloudDP;
+}
+DP LibpointmatcherTools::ccNormalsToPointMatcherSubsample(ccPointCloud* cloud)
+{
+	typedef DP::Label Label;
+	typedef DP::Labels Labels;
+	typedef DP::View View;
+
+	if (cloud->size() <= 0)
+		return DP();
+	Labels featLabels;
+	Labels descLabels;
+	std::vector<bool> isFeature;
+	featLabels.push_back(Label("x", 1));
+	isFeature.push_back(true);
+	featLabels.push_back(Label("y", 1));
+	isFeature.push_back(true);
+	featLabels.push_back(Label("z", 1));
+	isFeature.push_back(true);
+
+
+	featLabels.push_back(Label("i", 1));
+	isFeature.push_back(false);
+
+	descLabels.push_back(Label("normals", 3));
+	isFeature.push_back(false);
+	isFeature.push_back(false);
+	isFeature.push_back(false);
+
+	//featLabels.push_back(Label("pad", 1));
+
+
+	DP cloudDP(featLabels, descLabels, cloud->size());
+	//cloudDP.getFeatureViewByName("pad").setConstant(1);
+	// fill cloud
+	View view(cloudDP.getFeatureViewByName("x"));
+	View viewNormalX(cloudDP.getDescriptorRowViewByName("normals", 0));
+	View viewNormalY(cloudDP.getDescriptorRowViewByName("normals", 1));
+	View viewNormalZ(cloudDP.getDescriptorRowViewByName("normals", 2));
+	const CCVector3* P3D;
+	CCVector3 N3D;
+	int cloudSize = static_cast<int>(cloud->size());
+#if defined(_OPENMP)
+#pragma omp parallel for
+#endif
+	for (int i = 0; i < cloudSize; ++i)
+	{
+		P3D = cloud->getPoint(i);
+		N3D = cloud->getPointNormal(i);
+
+		view(0, i) = P3D->x;
+		view(1, i) = P3D->y;
+		view(2, i) = P3D->z;
+		view(3, i) = i;
+		viewNormalX(0, i) = N3D.x;
+		viewNormalY(0, i) = N3D.y;
+		viewNormalZ(0, i) = N3D.z;
+
+	}
+
+	return cloudDP;
+}
+CCCoreLib::ReferenceCloud* LibpointmatcherTools::pointmatcherToCCSubsample(DP* cloud, ccPointCloud* ref)
+{
+	typedef DP::View View;
+	CCCoreLib::ReferenceCloud* newCloud = new CCCoreLib::ReferenceCloud(ref);
+
+	//we have less points than requested?!
+	unsigned theCloudSize = ref->size();
+	unsigned newNumberOfPoints = cloud->features.cols();
+
+	if (theCloudSize <= newNumberOfPoints)
+	{
+		ccLog::Print(QString("Nothing to subsample returning nothing"));
+		return newCloud;
+
+	}
+	if (cloud->features.cols() == 0)
+	{
+		ccLog::Print(QString("Nothing to subsample returning nothing"));
+		return  newCloud;
+
+	}
+
+	//We then add the point indexes that were returned by the filtering of the point cloud
+	View viewIndex(cloud->getFeatureViewByName("i"));
+	int cloudSize = static_cast<int>(newNumberOfPoints);
+#if defined(_OPENMP)
+#pragma omp parallel for
+#endif
+	for (int i = 0; i < cloudSize; ++i)
+	{
+		newCloud->addPointIndex(viewIndex(0, i));
+	}
+
+	return newCloud;
+}
 
 DP  LibpointmatcherTools::filter(DP cloud, std::vector< std::shared_ptr<PM::DataPointsFilter>> filters, std::shared_ptr<PM::DataPointsFilter> normalParams, std::vector<bool> needNormals, bool hasNormalDescriptors)
 {

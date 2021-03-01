@@ -740,6 +740,21 @@ public: //other methods
 	//! Returns the VBOs size (if any)
 	size_t vboSize() const;
 
+	//! Returns the image associated Cloud
+	QString getFullImageName(QString id);
+
+	//! Set the scalar field associated to the image
+	void setImageScalarField(ccScalarField*);
+
+	//! Set the prefix field associated to the image name
+	void setImagePrefix(QString);
+
+	//! Set the suffix field associated to the image name
+	void setImageSuffix(QString);
+
+	//! Set the image folder
+	void setImageFolder(QString);
+
 protected:
 
 	//inherited from ccHObject
@@ -775,6 +790,15 @@ protected:
 	/** See ccPointCloud::testVisibility
 	**/
 	bool m_visibilityCheckEnabled;
+
+	//! Object Image Folder
+	QString m_imageFolder;
+	//! Object Image Suffix
+	QString m_imageSuffix;
+	//! Object Image Prefix
+	QString m_imagePrefix;
+	//! Object Image Prefix
+	ccScalarField* m_imageScalarField;
 
 protected: // VBO
 

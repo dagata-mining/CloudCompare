@@ -793,6 +793,12 @@ QTreeView::branch:open:has-children:has-siblings  {
    </widget>
   </widget>
   <widget class="QDockWidget" name="DockableImage">
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+     <horstretch>0</horstretch>
+     <verstretch>0</verstretch>
+    </sizepolicy>
+   </property>
    <property name="minimumSize">
     <size>
      <width>146</width>
@@ -803,7 +809,7 @@ QTreeView::branch:open:has-children:has-siblings  {
     <bool>false</bool>
    </property>
    <property name="features">
-    <set>QDockWidget::DockWidgetFloatable|QDockWidget::DockWidgetMovable</set>
+    <set>QDockWidget::AllDockWidgetFeatures</set>
    </property>
    <property name="windowTitle">
     <string>ImageViewer</string>
@@ -812,34 +818,13 @@ QTreeView::branch:open:has-children:has-siblings  {
     <number>1</number>
    </attribute>
    <widget class="QWidget" name="DockableImageViewer">
-    <layout class="QVBoxLayout" name="_2">
-     <item>
-      <widget class="QScrollArea" name="scrollAreaImage">
-       <property name="widgetResizable">
-        <bool>true</bool>
-       </property>
-       <widget class="QWidget" name="scrollAreaWidgetContents">
-        <property name="geometry">
-         <rect>
-          <x>0</x>
-          <y>0</y>
-          <width>251</width>
-          <height>133</height>
-         </rect>
-        </property>
-        <layout class="QVBoxLayout" name="verticalLayout">
-         <item>
-          <widget class="QLabel" name="imageLabel">
-           <property name="text">
-            <string>TextLabel</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </widget>
-      </widget>
-     </item>
-    </layout>
+    <property name="sizePolicy">
+     <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+      <horstretch>0</horstretch>
+      <verstretch>0</verstretch>
+     </sizepolicy>
+    </property>
+    <layout class="QVBoxLayout" name="imageViewerLayout"/>
    </widget>
   </widget>
   <action name="actionOpen">

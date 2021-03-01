@@ -419,7 +419,6 @@ void Libpointmatcher::doActionConvergence()
 		
 		std::vector<ccGLMatrixd> transformationList =
 			LibpointmatcherProcess::convergence(dlgConvergence, errorMessage, m_app->getMainWindow(), m_app);
-		ccLog::Error(QString::number(transformationList.size()));
 		if (transformationList.size() > 0)
 		{
 			for (int i = 0; i < transformationList.size(); i++)

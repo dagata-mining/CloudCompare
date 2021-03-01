@@ -2975,7 +2975,7 @@
          <double>1.000000000000000</double>
         </property>
         <property name="value">
-         <double>10.000000000000000</double>
+         <double>4.000000000000000</double>
         </property>
        </widget>
        <widget class="QLabel" name="kdTreeKnnTitle">
@@ -4197,15 +4197,15 @@
   </connection>
  </connections>
  <buttongroups>
-  <buttongroup name="buttonGroup_10"/>
-  <buttongroup name="buttonGroup_3"/>
+  <buttongroup name="buttonGroup_9"/>
   <buttongroup name="buttonGroup"/>
-  <buttongroup name="buttonGroup_2"/>
-  <buttongroup name="buttonGroup_7"/>
-  <buttongroup name="buttonGroup_8"/>
+  <buttongroup name="buttonGroup_3"/>
   <buttongroup name="buttonGroup_5"/>
   <buttongroup name="buttonGroup_6"/>
+  <buttongroup name="buttonGroup_7"/>
+  <buttongroup name="buttonGroup_8"/>
+  <buttongroup name="buttonGroup_2"/>
   <buttongroup name="buttonGroup_4"/>
-  <buttongroup name="buttonGroup_9"/>
+  <buttongroup name="buttonGroup_10"/>
  </buttongroups>
 </ui>

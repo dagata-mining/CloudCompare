@@ -275,7 +275,8 @@ MainWindow::MainWindow()
 	}
 	//image-viewer
 	{
-		m_ccImageViewer = new ccImageViewer(m_UI->imageLabel,m_UI->scrollAreaImage, this);
+		m_ccImageViewer = new ccImageViewer(m_UI->DockableImageViewer);
+		m_UI->DockableImageViewer->layout()->addWidget(m_ccImageViewer);
 	}
 
 	//MDI Area
