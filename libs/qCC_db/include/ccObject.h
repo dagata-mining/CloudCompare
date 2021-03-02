@@ -317,11 +317,15 @@ protected:
 	//! Object name
 	QString m_name;
 
+	
+
 	//! Object flags
 	unsigned m_flags;
 
 	//! Associated meta-data
 	QVariantMap m_metaData;
+
+
 
 private:
 

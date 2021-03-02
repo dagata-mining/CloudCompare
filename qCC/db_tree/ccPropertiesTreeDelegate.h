@@ -72,6 +72,7 @@ public:
 							OBJECT_MESH_WIRE						,
 							OBJECT_MESH_STIPPLING					,
 							OBJECT_CURRENT_SCALAR_FIELD				,
+							OBJECT_IMAGEVIEW_SCALAR_FIELD			,
 							OBJECT_CURRENT_COLOR_RAMP				,
 							OBJECT_IMAGE_ALPHA						,
 							OBJECT_APPLY_IMAGE_VIEWPORT				,
@@ -92,6 +93,8 @@ public:
 							OBJECT_CONE_BOTTOM_RADIUS				,
 							OBJECT_CONE_TOP_RADIUS					,
 							OBJECT_CLOUD_POINT_SIZE					,
+							OBJECT_CLOUD_PREFIX						,
+							OBJECT_CLOUD_SUFFIX						,
 							OBJECT_NAME_IN_3D						,
 							OBJECT_FACET_CONTOUR					,
 							OBJECT_FACET_MESH						,
@@ -143,6 +146,9 @@ private:
 	
 	void updateItem(QStandardItem*);
 	void scalarFieldChanged(int);
+	void scalarFieldImage(int);
+	void suffixChanged();
+	void prefixChanged();
 	void colorScaleChanged(int);
 	void colorRampStepsChanged(int);
 	void spawnColorRampEditor();
@@ -177,6 +183,7 @@ private:
 	void fillWithHObject(ccHObject*);
 	void fillWithPointCloud(ccGenericPointCloud*);
 	void fillSFWithPointCloud(ccGenericPointCloud*);
+	void imageSFWithPointCloud(ccGenericPointCloud*);
 	void fillWithMesh(const ccGenericMesh*);
 	void fillWithFacet(const ccFacet*);
 	void fillWithPlanarEntity(const ccPlanarEntityInterface*);

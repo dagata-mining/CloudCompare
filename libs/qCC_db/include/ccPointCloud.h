@@ -744,14 +744,17 @@ public: //other methods
 	QString getFullImageName(QString id);
 
 	//! Set the scalar field associated to the image
-	void setImageScalarField(ccScalarField*);
+	void setImageScalarField(int pos) { m_imageScalarField = pos; };
+	//! Set the scalar field associated to the image
+	int getCurrentImageViewScalarFieldIndex() { return m_imageScalarField; }
 
 	//! Set the prefix field associated to the image name
-	void setImagePrefix(QString);
+	void setImagePrefix(QString prefix) { m_imagePrefix = prefix; }
+	QString getImagePrefix() { return m_imagePrefix; }
 
 	//! Set the suffix field associated to the image name
-	void setImageSuffix(QString);
-
+	void setImageSuffix(QString suffix) {m_imageSuffix = suffix;}
+	QString getImageSuffix() { return m_imageSuffix; }
 	//! Set the image folder
 	void setImageFolder(QString);
 
@@ -798,7 +801,7 @@ protected:
 	//! Object Image Prefix
 	QString m_imagePrefix;
 	//! Object Image Prefix
-	ccScalarField* m_imageScalarField;
+	int m_imageScalarField;
 
 protected: // VBO
 

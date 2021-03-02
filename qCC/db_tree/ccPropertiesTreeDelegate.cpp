@@ -310,7 +310,12 @@ void ccPropertiesTreeDelegate::fillModel(ccHObject* hObject)
 			appendWideRow(PERSISTENT_EDITOR(OBJECT_GLTRANS_MATRIX_EDITOR));
 		}
 	}
-
+	//transformation history
+	if (m_currentObject->isKindOf(CC_TYPES::POINT_CLOUD))
+	{
+		addSeparator(tr("Image Viewer"));
+		imageSFWithPointCloud(ccHObjectCaster::ToGenericPointCloud(m_currentObject));
+	}
 	//meta-data
 	fillWithMetaData(m_currentObject);
 
@@ -646,7 +651,29 @@ void ccPropertiesTreeDelegate::fillSFWithPointCloud(ccGenericPointCloud* _obj)
 		}
 	}
 }
-
+void ccPropertiesTreeDelegate::imageSFWithPointCloud(ccGenericPointCloud* _obj)
+{
+	assert(m_model);
+	if (!_obj || !m_model)
+	{
+		return;
+	}
+	//for "real" point clouds only
+	ccPointCloud* cloud = ccHObjectCaster::ToPointCloud(_obj);
+	if (!cloud)
+	{
+		return;
+	}
+	appendRow(ITEM(tr("Image Folder")), PERSISTENT_EDITOR(OBJECT_CLOUD_POINT_SIZE), true);
+	appendRow(ITEM(tr("Prefix")), PERSISTENT_EDITOR(OBJECT_CLOUD_PREFIX), true);
+	appendRow(ITEM(tr("Suffix including extension")), PERSISTENT_EDITOR(OBJECT_CLOUD_SUFFIX), true);
+	
+	//Scalar fields
+	unsigned sfCount = cloud->getNumberOfScalarFields();
+	//fields list combo
+	appendRow(ITEM(tr("Scalar Field Image ID")), PERSISTENT_EDITOR(OBJECT_IMAGEVIEW_SCALAR_FIELD), true);
+	appendRow(ITEM(tr("Example:")), PERSISTENT_EDITOR(OBJECT_CLOUD_POINT_SIZE), true);
+}
 void ccPropertiesTreeDelegate::fillWithPrimitive(const ccGenericPrimitive* _obj)
 {
 	assert(_obj && m_model);
@@ -1240,6 +1267,43 @@ QWidget* ccPropertiesTreeDelegate::createEditor(QWidget *parent,
 		outputWidget = comboBox;
 	}
 	break;
+	case OBJECT_CLOUD_PREFIX:
+	{
+		
+		QLineEdit *lineEdit = new QLineEdit(parent);
+		connect(lineEdit, &QLineEdit::editingFinished, this, &ccPropertiesTreeDelegate::prefixChanged);
+
+		outputWidget = lineEdit;
+	}
+	break;
+	case OBJECT_CLOUD_SUFFIX:
+	{
+		QLineEdit *lineEdit = new QLineEdit(parent);
+		connect(lineEdit, &QLineEdit::editingFinished, this, &ccPropertiesTreeDelegate::suffixChanged);
+
+		outputWidget = lineEdit;
+	}
+	break;
+	case OBJECT_IMAGEVIEW_SCALAR_FIELD:
+	{
+		ccPointCloud* cloud = ccHObjectCaster::ToPointCloud(m_currentObject);
+		assert(cloud);
+
+		QComboBox *comboBox = new QComboBox(parent);
+
+		int nsf = cloud ? cloud->getNumberOfScalarFields() : 0;
+		for (int i = 0; i < nsf; ++i)
+		{
+			comboBox->addItem(QString(cloud->getScalarFieldName(i)));
+		}
+		comboBox->addItem(QString("Point ID#"));
+
+		connect(comboBox, static_cast<void (QComboBox::*)(int)>(&QComboBox::activated),
+			this, &ccPropertiesTreeDelegate::scalarFieldImage);
+
+		outputWidget = comboBox;
+	}
+	break;
 	case OBJECT_CURRENT_COLOR_RAMP:
 	{
 		ccColorScaleSelector* selector = new ccColorScaleSelector(ccColorScalesManager::GetUniqueInstance(), parent, QString::fromUtf8(":/CC/images/ccGear.png"));
@@ -1673,6 +1737,8 @@ void SetComboBoxIndex(QWidget *editor, int index)
 	comboBox->setCurrentIndex(index);
 }
 
+
+
 void ccPropertiesTreeDelegate::setEditorData(QWidget *editor, const QModelIndex &index) const
 {
 	if (!m_model || !m_currentObject)
@@ -1710,6 +1776,45 @@ void ccPropertiesTreeDelegate::setEditorData(QWidget *editor, const QModelIndex 
 		}
 		int pos = cloud->getCurrentDisplayedScalarFieldIndex();
 		SetComboBoxIndex(editor, pos + 1);
+		break;
+	}
+	case OBJECT_IMAGEVIEW_SCALAR_FIELD:
+	{
+		ccPointCloud* cloud = ccHObjectCaster::ToPointCloud(m_currentObject);
+		assert(cloud);
+		if (!cloud)
+		{
+			return;
+		}
+		int nsf = cloud ? cloud->getNumberOfScalarFields() : 0;
+		if (nsf > 0) 
+		{
+			int pos = cloud->getCurrentImageViewScalarFieldIndex();
+			SetComboBoxIndex(editor, pos);
+		}
+		else
+		{
+			SetComboBoxIndex(editor, 0);
+		}
+		break;
+	}
+	case OBJECT_CLOUD_PREFIX: 
+	{
+
+		QLineEdit* lineEdit = qobject_cast<QLineEdit*>(editor);
+		ccPointCloud* cloud = ccHObjectCaster::ToPointCloud(m_currentObject);
+		QString prefix = cloud->getImagePrefix();
+		
+		lineEdit->setText(prefix);
+		break;
+	}
+	case OBJECT_CLOUD_SUFFIX:
+	{
+		QLineEdit* lineEdit = qobject_cast<QLineEdit*>(editor);
+		ccPointCloud* cloud = ccHObjectCaster::ToPointCloud(m_currentObject);
+		QString suffix = cloud->getImageSuffix();
+		
+		lineEdit->setText(suffix);
 		break;
 	}
 	case OBJECT_CURRENT_COLOR_RAMP:
@@ -2190,7 +2295,23 @@ void ccPropertiesTreeDelegate::updateModel()
 	//simply re-fill model!
 	fillModel(m_currentObject);
 }
-
+void ccPropertiesTreeDelegate::scalarFieldImage(int pos) 
+{
+	ccPointCloud* cloud = ccHObjectCaster::ToPointCloud(m_currentObject);
+	cloud->setImageScalarField(pos);
+}
+void ccPropertiesTreeDelegate::suffixChanged()
+{
+	QLineEdit* lineEdit = qobject_cast<QLineEdit*>(QObject::sender());
+	ccPointCloud* cloud = ccHObjectCaster::ToPointCloud(m_currentObject);
+	cloud->setImageSuffix(lineEdit->text());
+}
+void ccPropertiesTreeDelegate::prefixChanged()
+{
+	QLineEdit* lineEdit = qobject_cast<QLineEdit*>(QObject::sender());
+	ccPointCloud* cloud = ccHObjectCaster::ToPointCloud(m_currentObject);
+	cloud->setImagePrefix(lineEdit->text());
+}
 void ccPropertiesTreeDelegate::scalarFieldChanged(int pos)
 {
 	if (!m_currentObject)
