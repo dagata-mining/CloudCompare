@@ -72,6 +72,7 @@ ccPointCloud::ccPointCloud(QString name/*=QString()*/, unsigned uniqueID/*=ccUni
 	, m_imageScalarField(0)
 	, m_imagePrefix(QString(""))
 	, m_imageSuffix(QString(".jpg"))
+	, m_imageFolder("")
 {
 	setName(name); //sadly we cannot use the ccGenericPointCloud constructor argument
 	showSF(false);

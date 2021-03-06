@@ -756,7 +756,8 @@ public: //other methods
 	void setImageSuffix(QString suffix) {m_imageSuffix = suffix;}
 	QString getImageSuffix() { return m_imageSuffix; }
 	//! Set the image folder
-	void setImageFolder(QString);
+	void setImageFolder(QString folder) { m_imageFolder = folder; };
+	QString getImageFolder() { return m_imageFolder; }
 
 protected:
 

@@ -72,7 +72,8 @@ public:
 							OBJECT_MESH_WIRE						,
 							OBJECT_MESH_STIPPLING					,
 							OBJECT_CURRENT_SCALAR_FIELD				,
-							OBJECT_IMAGEVIEW_SCALAR_FIELD			,
+							OBJECT_IMAGEVIEW_SCALAR_FIELD			,		
+							OBJECT_IMAGE_EXAMPLE					,
 							OBJECT_CURRENT_COLOR_RAMP				,
 							OBJECT_IMAGE_ALPHA						,
 							OBJECT_APPLY_IMAGE_VIEWPORT				,
@@ -93,6 +94,7 @@ public:
 							OBJECT_CONE_BOTTOM_RADIUS				,
 							OBJECT_CONE_TOP_RADIUS					,
 							OBJECT_CLOUD_POINT_SIZE					,
+							OBJECT_IMAGE_PATH						,
 							OBJECT_CLOUD_PREFIX						,
 							OBJECT_CLOUD_SUFFIX						,
 							OBJECT_NAME_IN_3D						,
@@ -149,6 +151,10 @@ private:
 	void scalarFieldImage(int);
 	void suffixChanged();
 	void prefixChanged();
+	void imageFolderChanged();
+	void updateImageNamePreview(QLineEdit*);
+	void openBrowserFolder();
+	void getImageFolder();
 	void colorScaleChanged(int);
 	void colorRampStepsChanged(int);
 	void spawnColorRampEditor();

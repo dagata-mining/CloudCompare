@@ -37,6 +37,7 @@
 #include <ccColorScalesManager.h>
 #include <ccCone.h>
 #include <ccFacet.h>
+#include <ccFileUtils.h>
 #include <ccGBLSensor.h>
 #include <ccGenericPrimitive.h>
 #include <ccHObject.h>
@@ -50,6 +51,7 @@
 #include <ccPlane.h>
 #include <ccPointCloud.h>
 #include <ccPolyline.h>
+#include "ccPersistentSettings.h"
 #include <ccScalarField.h>
 #include <ccSensor.h>
 #include <ccSphere.h>
@@ -70,6 +72,8 @@
 #include <QSpinBox>
 #include <QStandardItemModel>
 #include <QToolButton>
+#include <QFileDialog>
+#include <QSettings>
 
 //System
 #include <cassert>
@@ -664,7 +668,7 @@ void ccPropertiesTreeDelegate::imageSFWithPointCloud(ccGenericPointCloud* _obj)
 	{
 		return;
 	}
-	appendRow(ITEM(tr("Image Folder")), PERSISTENT_EDITOR(OBJECT_CLOUD_POINT_SIZE), true);
+	appendRow(ITEM(tr("Image Folder")), PERSISTENT_EDITOR(OBJECT_IMAGE_PATH), true);
 	appendRow(ITEM(tr("Prefix")), PERSISTENT_EDITOR(OBJECT_CLOUD_PREFIX), true);
 	appendRow(ITEM(tr("Suffix including extension")), PERSISTENT_EDITOR(OBJECT_CLOUD_SUFFIX), true);
 	
@@ -672,7 +676,7 @@ void ccPropertiesTreeDelegate::imageSFWithPointCloud(ccGenericPointCloud* _obj)
 	unsigned sfCount = cloud->getNumberOfScalarFields();
 	//fields list combo
 	appendRow(ITEM(tr("Scalar Field Image ID")), PERSISTENT_EDITOR(OBJECT_IMAGEVIEW_SCALAR_FIELD), true);
-	appendRow(ITEM(tr("Example:")), PERSISTENT_EDITOR(OBJECT_CLOUD_POINT_SIZE), true);
+	appendRow(ITEM(tr("Example:")), PERSISTENT_EDITOR(OBJECT_IMAGE_EXAMPLE), true);
 }
 void ccPropertiesTreeDelegate::fillWithPrimitive(const ccGenericPrimitive* _obj)
 {
@@ -1247,6 +1251,32 @@ QWidget* ccPropertiesTreeDelegate::createEditor(QWidget *parent,
 		outputWidget = comboBox;
 	}
 	break;
+	case OBJECT_IMAGE_PATH :
+	{
+		ccPointCloud* cloud = ccHObjectCaster::ToPointCloud(m_currentObject);
+		assert(cloud);
+		//file choosing dialog
+		QWidget *filePathWidget = new QWidget(parent);
+		
+		QHBoxLayout *buttonsLayout = new QHBoxLayout();
+		buttonsLayout->setObjectName("buttonsLayout");
+		filePathWidget->setLayout(buttonsLayout);
+
+		buttonsLayout->setContentsMargins(0, 0, 0, 0);
+		filePathWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Maximum);
+		QLineEdit* filesFoundLabel = new QLineEdit();
+		filesFoundLabel->setObjectName("filesFoundLabel");
+		QToolButton* findButton = new QToolButton();
+		filesFoundLabel->setText("This Path");
+		findButton->setText("...");
+		buttonsLayout -> addWidget(filesFoundLabel);
+		buttonsLayout -> addWidget(findButton);
+		connect(filesFoundLabel, &QLineEdit::textEdited, this, &ccPropertiesTreeDelegate::imageFolderChanged);
+		connect(findButton, &QToolButton::clicked, this, &ccPropertiesTreeDelegate::openBrowserFolder);
+		outputWidget = filePathWidget;
+		
+	}
+	break;
 	case OBJECT_CURRENT_SCALAR_FIELD:
 	{
 		ccPointCloud* cloud = ccHObjectCaster::ToPointCloud(m_currentObject);
@@ -1271,7 +1301,7 @@ QWidget* ccPropertiesTreeDelegate::createEditor(QWidget *parent,
 	{
 		
 		QLineEdit *lineEdit = new QLineEdit(parent);
-		connect(lineEdit, &QLineEdit::editingFinished, this, &ccPropertiesTreeDelegate::prefixChanged);
+		connect(lineEdit, &QLineEdit::textEdited, this, &ccPropertiesTreeDelegate::prefixChanged);
 
 		outputWidget = lineEdit;
 	}
@@ -1279,9 +1309,17 @@ QWidget* ccPropertiesTreeDelegate::createEditor(QWidget *parent,
 	case OBJECT_CLOUD_SUFFIX:
 	{
 		QLineEdit *lineEdit = new QLineEdit(parent);
-		connect(lineEdit, &QLineEdit::editingFinished, this, &ccPropertiesTreeDelegate::suffixChanged);
+		connect(lineEdit, &QLineEdit::textEdited, this, &ccPropertiesTreeDelegate::suffixChanged);
 
 		outputWidget = lineEdit;
+	}
+	break;
+	case OBJECT_IMAGE_EXAMPLE:
+	{
+		QLineEdit *line = new QLineEdit(parent);
+		line->setReadOnly(true);
+		line->setObjectName("previewImageName");
+		outputWidget = line;
 	}
 	break;
 	case OBJECT_IMAGEVIEW_SCALAR_FIELD:
@@ -1292,11 +1330,12 @@ QWidget* ccPropertiesTreeDelegate::createEditor(QWidget *parent,
 		QComboBox *comboBox = new QComboBox(parent);
 
 		int nsf = cloud ? cloud->getNumberOfScalarFields() : 0;
+		comboBox->addItem(QString("Point ID#"));
 		for (int i = 0; i < nsf; ++i)
 		{
 			comboBox->addItem(QString(cloud->getScalarFieldName(i)));
 		}
-		comboBox->addItem(QString("Point ID#"));
+		
 
 		connect(comboBox, static_cast<void (QComboBox::*)(int)>(&QComboBox::activated),
 			this, &ccPropertiesTreeDelegate::scalarFieldImage);
@@ -1798,6 +1837,24 @@ void ccPropertiesTreeDelegate::setEditorData(QWidget *editor, const QModelIndex 
 		}
 		break;
 	}
+	case OBJECT_IMAGE_PATH:
+	{
+
+		QString defaultFileName(ccFileUtils::defaultDocPath());
+		QLineEdit* lineEdit=editor->findChild<QLineEdit*>("filesFoundLabel");
+		if (!lineEdit)
+		{
+			return;
+		}
+		ccPointCloud* cloud = ccHObjectCaster::ToPointCloud(m_currentObject);
+		if (!cloud) 
+		{
+			return;
+		}
+		cloud->setImageFolder(defaultFileName);
+		lineEdit->setText(defaultFileName);
+		break;
+	}
 	case OBJECT_CLOUD_PREFIX: 
 	{
 
@@ -1815,6 +1872,28 @@ void ccPropertiesTreeDelegate::setEditorData(QWidget *editor, const QModelIndex 
 		QString suffix = cloud->getImageSuffix();
 		
 		lineEdit->setText(suffix);
+		break;
+	}
+	case OBJECT_IMAGE_EXAMPLE: 
+	{
+		QLineEdit* line = qobject_cast<QLineEdit*>(editor);
+		ccPointCloud* cloud = ccHObjectCaster::ToPointCloud(m_currentObject);
+		QString suffix = cloud->getImageSuffix();
+		QString prefix = cloud->getImagePrefix();
+		QString folder = cloud->getImageFolder();
+		QString scalarValue = "";
+		int scalarField = cloud->getCurrentImageViewScalarFieldIndex();
+		if (scalarField == 0) 
+		{ 
+			scalarValue = "0";
+		}
+		else
+		{
+			cloud->setCurrentScalarField(scalarField - 1);
+			scalarValue = QString::number(cloud->getPointScalarValue(0));
+		}
+		line->setText(folder + QString("/") + prefix + scalarValue + suffix);
+			
 		break;
 	}
 	case OBJECT_CURRENT_COLOR_RAMP:
@@ -2297,21 +2376,79 @@ void ccPropertiesTreeDelegate::updateModel()
 }
 void ccPropertiesTreeDelegate::scalarFieldImage(int pos) 
 {
+	QComboBox* combo = qobject_cast<QComboBox*>(QObject::sender());
 	ccPointCloud* cloud = ccHObjectCaster::ToPointCloud(m_currentObject);
 	cloud->setImageScalarField(pos);
+	updateImageNamePreview(combo->parent()->parent()->findChild<QLineEdit*>("previewImageName"));
 }
 void ccPropertiesTreeDelegate::suffixChanged()
 {
 	QLineEdit* lineEdit = qobject_cast<QLineEdit*>(QObject::sender());
 	ccPointCloud* cloud = ccHObjectCaster::ToPointCloud(m_currentObject);
 	cloud->setImageSuffix(lineEdit->text());
+	updateImageNamePreview(lineEdit->parent()->parent()->findChild<QLineEdit*>("previewImageName"));
 }
 void ccPropertiesTreeDelegate::prefixChanged()
 {
 	QLineEdit* lineEdit = qobject_cast<QLineEdit*>(QObject::sender());
 	ccPointCloud* cloud = ccHObjectCaster::ToPointCloud(m_currentObject);
 	cloud->setImagePrefix(lineEdit->text());
+	updateImageNamePreview(lineEdit->parent()->parent()->findChild<QLineEdit*>("previewImageName"));
 }
+void ccPropertiesTreeDelegate::imageFolderChanged() 
+{
+	QLineEdit* lineEdit = qobject_cast<QLineEdit*>(QObject::sender());
+	ccPointCloud* cloud = ccHObjectCaster::ToPointCloud(m_currentObject);
+	cloud->setImageFolder(lineEdit->text());
+	updateImageNamePreview(lineEdit->parent()->parent()->findChild<QLineEdit*>("previewImageName"));
+}
+void ccPropertiesTreeDelegate::updateImageNamePreview(QLineEdit* line) 
+{
+	ccPointCloud* cloud = ccHObjectCaster::ToPointCloud(m_currentObject);
+	QString suffix = cloud->getImageSuffix();
+	QString prefix = cloud->getImagePrefix();
+	QString folder = cloud->getImageFolder();
+	QString scalarValue = "";
+	int scalarField = cloud->getCurrentImageViewScalarFieldIndex();
+	if (scalarField == 0)
+	{
+		scalarValue = "0";
+	}
+	else
+	{
+		cloud->setCurrentScalarField(scalarField - 1);
+		scalarValue = QString::number(cloud->getPointScalarValue(0));
+	}
+	line->setText(folder + QString("/") + prefix + scalarValue + suffix);
+}
+
+void ccPropertiesTreeDelegate::openBrowserFolder() 
+{
+	QToolButton* button = qobject_cast<QToolButton*>(QObject::sender());
+	QWidget* parent = button->parentWidget();
+	ccPointCloud* cloud = ccHObjectCaster::ToPointCloud(m_currentObject);
+	if (!cloud) 
+	{
+		return;
+	}
+	QString currentPath = cloud->getImageFolder();
+	QString dir = QFileDialog::getExistingDirectory(MainWindow::TheInstance(),
+		tr("Open Directory"),
+		currentPath,
+		QFileDialog::ShowDirsOnly
+		| QFileDialog::DontResolveSymlinks);
+
+	if (dir.length() < 1)
+	{
+		return;
+	}
+	cloud->setImageFolder(dir);
+	QLineEdit* lineEdit = parent->findChild<QLineEdit*>("filesFoundLabel");
+	lineEdit->setText(dir);
+	updateImageNamePreview(lineEdit->parent()->parent()->findChild<QLineEdit*>("previewImageName"));
+
+}
+
 void ccPropertiesTreeDelegate::scalarFieldChanged(int pos)
 {
 	if (!m_currentObject)
@@ -2765,6 +2902,24 @@ void ccPropertiesTreeDelegate::trihedronsScaleChanged(double val)
 			updateDisplay();
 		}
 	}
+}
+void ccPropertiesTreeDelegate::getImageFolder() 
+{
+	ccPointCloud* cloud = ccHObjectCaster::ToPointCloud(m_currentObject);
+	QSettings settings;
+	settings.beginGroup(ccPS::SaveFile());
+	QString currentPath = settings.value(ccPS::CurrentPath(), ccFileUtils::defaultDocPath()).toString();
+
+	/*
+	QStringList selectedFiles = QFileDialog::getOpenFileNames(this,
+		tr("Open file(s)"),
+		currentPath,
+		filterStrings.join(s_fileFilterSeparator),
+		&currentOpenDlgFilter,
+		CCFileDialogOptions());
+	if (selectedFiles.isEmpty())
+		return;
+	*/
 }
 
 void ccPropertiesTreeDelegate::cloudPointSizeChanged(int size)
