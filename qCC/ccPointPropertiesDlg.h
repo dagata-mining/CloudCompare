@@ -19,6 +19,7 @@
 #define CC_POINT_PROPERTIES_DIALOG_HEADER
 
 #include "ccPointPickingGenericInterface.h"
+#include "ccImageViewer.h"
 
 //Local
 #include <ui_pointPropertiesDlg.h>
@@ -26,6 +27,8 @@
 class cc2DLabel;
 class cc2DViewportLabel;
 class ccHObject;
+class MainWindow;
+class ccImageViewer;
 
 //! Dialog for simple point picking (information, distance, etc.)
 class ccPointPropertiesDlg : public ccPointPickingGenericInterface, public Ui::PointPropertiesDlg

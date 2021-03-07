@@ -170,6 +170,8 @@ public:
 	//! Updates the 'Properties' view
 	void updatePropertiesView();
 	
+	//!
+	ccImageViewer* ccGetImageViewer() { return m_ccImageViewer; }
 
 private:
 	//! Creates a new 3D GL sub-window
@@ -623,6 +625,8 @@ private:
 	ccPointPairRegistrationDlg* m_pprDlg;
 	//! Primitive factory dialog
 	ccPrimitiveFactoryDlg* m_pfDlg;
+	//! 
+	ccImageViewer* m_imageViewer;
 
 	/*** plugins ***/
 	//! Manages plugins - menus, toolbars, and the about dialog

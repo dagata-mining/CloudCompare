@@ -40,11 +40,16 @@ public:
 	
 	//~ccImageViewer() override;
 	explicit ccImageViewer(QWidget*);
+	//! Default destructor
+	virtual ~ccImageViewer();
 
 
 	void wheelEvent(QWheelEvent*);
 	void keyPressEvent(QKeyEvent*);
-
+	void changeImage(QString);
+private:
+	QGraphicsPixmapItem* m_pixmapItem;
+	QGraphicsScene* m_scene;
 };
 
 #endif

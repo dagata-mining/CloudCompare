@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>234</width>
+    <width>295</width>
     <height>30</height>
    </rect>
   </property>
@@ -133,6 +133,16 @@
      <property name="icon">
       <iconset resource="../icons.qrc">
        <normaloff>:/CC/images/smallCancel.png</normaloff>:/CC/images/smallCancel.png</iconset>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QCheckBox" name="imageViewer">
+     <property name="text">
+      <string>Image Viewer</string>
+     </property>
+     <property name="checked">
+      <bool>true</bool>
      </property>
     </widget>
    </item>

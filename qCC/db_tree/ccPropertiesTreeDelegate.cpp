@@ -1890,7 +1890,7 @@ void ccPropertiesTreeDelegate::setEditorData(QWidget *editor, const QModelIndex 
 		else
 		{
 			cloud->setCurrentScalarField(scalarField - 1);
-			scalarValue = QString::number(cloud->getPointScalarValue(0));
+			scalarValue = QString::number((int)cloud->getPointScalarValue(0));
 		}
 		line->setText(folder + QString("/") + prefix + scalarValue + suffix);
 			
@@ -2417,7 +2417,7 @@ void ccPropertiesTreeDelegate::updateImageNamePreview(QLineEdit* line)
 	else
 	{
 		cloud->setCurrentScalarField(scalarField - 1);
-		scalarValue = QString::number(cloud->getPointScalarValue(0));
+		scalarValue = QString::number((int)cloud->getPointScalarValue(0));
 	}
 	line->setText(folder + QString("/") + prefix + scalarValue + suffix);
 }
@@ -2446,7 +2446,6 @@ void ccPropertiesTreeDelegate::openBrowserFolder()
 	QLineEdit* lineEdit = parent->findChild<QLineEdit*>("filesFoundLabel");
 	lineEdit->setText(dir);
 	updateImageNamePreview(lineEdit->parent()->parent()->findChild<QLineEdit*>("previewImageName"));
-
 }
 
 void ccPropertiesTreeDelegate::scalarFieldChanged(int pos)

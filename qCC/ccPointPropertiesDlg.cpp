@@ -21,6 +21,7 @@
 #include "ccCommon.h"
 #include "ccGLWindow.h"
 #include "ccGuiParameters.h"
+#include "mainwindow.h"
 
 //qCC_db
 #include <ccLog.h>
@@ -135,6 +136,7 @@ void ccPointPropertiesDlg::stop(bool state)
 void ccPointPropertiesDlg::onClose()
 {
 	stop(false);
+	MainWindow::TheInstance()->ccGetImageViewer()->changeImage("");
 }
 
 void ccPointPropertiesDlg::activatePointPropertiesDisplay()
@@ -283,6 +285,26 @@ void ccPointPropertiesDlg::processPickedPoint(const PickedItem& picked)
 	if (picked.entity->isKindOf(CC_TYPES::POINT_CLOUD))
 	{
 		m_label->addPickedPoint(static_cast<ccGenericPointCloud*>(picked.entity), picked.itemIndex, picked.entityCenter);
+		if (imageViewer->isChecked()) 
+		{
+			ccPointCloud* cloud = static_cast<ccPointCloud*>(picked.entity);
+			QString suffix = cloud->getImageSuffix();
+			QString prefix = cloud->getImagePrefix();
+			QString folder = cloud->getImageFolder();
+			QString scalarValue;
+			int scalarField = cloud->getCurrentImageViewScalarFieldIndex();
+			if (scalarField == 0)
+			{
+				scalarValue = picked.itemIndex;
+			}
+			else
+			{
+				cloud->setCurrentScalarField(scalarField - 1);
+				scalarValue = QString::number(cloud->getPointScalarValue(picked.itemIndex));
+			}
+			QString path = folder + QString("/") + prefix + scalarValue + suffix;
+			MainWindow::TheInstance()->ccGetImageViewer()->changeImage(path);
+		}
 	}
 	else if (picked.entity->isKindOf(CC_TYPES::MESH))
 	{

@@ -56,13 +56,34 @@ ccImageViewer::ccImageViewer(QWidget* parent = nullptr)
 	setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 	setDragMode(QGraphicsView::ScrollHandDrag);
 	
-	QGraphicsPixmapItem *pixmapItem = new QGraphicsPixmapItem(QPixmap("C:/Users/Asus/Pictures/IMG_0007.PNG"));
-	pixmapItem->setTransformationMode(Qt::SmoothTransformation);
-	QGraphicsScene *scene = new QGraphicsScene();
-	scene->addItem(pixmapItem);
-	setScene(scene);
+	m_pixmapItem = new QGraphicsPixmapItem(QPixmap(""));
+	m_pixmapItem->setTransformationMode(Qt::SmoothTransformation);
+	m_scene = new QGraphicsScene();
+	m_scene->addItem(m_pixmapItem);
+	setScene(m_scene);
 	
 }
+
+ccImageViewer::~ccImageViewer()
+{
+	if (m_pixmapItem)
+		delete m_pixmapItem;
+	m_pixmapItem = nullptr;
+
+	if (m_scene)
+		delete m_scene;
+	m_scene = nullptr;
+}
+
+void ccImageViewer::changeImage(QString path) 
+{
+	QPixmap img = QPixmap(path);
+	m_pixmapItem->setPixmap(img);
+	m_scene->setSceneRect(0, 0, img.width(), img.height());
+	
+
+}
+
 
 void ccImageViewer::wheelEvent(QWheelEvent *event)
 {
